@@ -1489,10 +1489,10 @@
       function applyUpgrades(car, base) { const u = upgrades[car] || {}; const out = Object.assign({}, base); for (const stat of ['speed', 'grip', 'power', 'stab']) { const t = u[stat] || 0; if (t > 0) { const b = UPG[stat].bonus(t); for (const k in b) if (out[k] !== undefined) out[k] += b[k] } } return out }
       const VEH = {
         buggy: { n: 'Speedster', d: 'Low, fast wedge. Slides on rough ground', R: 22, RL: 30, K: 70, C: 9.5, I: 2800, L: 50, LY: 12, HX: -2, HY: -36, BX: 80, DR: 1200, TOP: 1450, BRK: 1500, TR: 1.2, wf: 1 },
-        truck: { n: 'Truck', d: 'Heavy and grippy, lower top speed', R: 25, RL: 34, K: 86, C: 11.5, I: 4200, L: 60, LY: 12, HX: 4, HY: -52, BX: 94, DR: 1000, TOP: 1050, BRK: 1300, TR: 1.55, wf: 1 },
-        sedan: { n: 'Sedan', d: 'Fast, but slips on bad ground', R: 17, RL: 26, K: 58, C: 8.5, I: 2800, L: 50, LY: 12, HX: 2, HY: -37, BX: 68, DR: 1250, TOP: 1500, BRK: 1500, TR: 1.0, wf: 1 },
-        suv: { n: 'XUV', d: 'Tall, tough and stable', R: 22, RL: 34, K: 74, C: 10.5, I: 3300, L: 54, LY: 12, HX: 4, HY: -47, BX: 86, DR: 1150, TOP: 1350, BRK: 1400, TR: 1.4, wf: 1 },
-        bike: { n: 'Bike', d: 'Light and quick, flips easily', R: 19, RL: 28, K: 60, C: 9, I: 1100, L: 34, LY: 10, HX: 10, HY: -58, BX: 44, DR: 1150, TOP: 1450, BRK: 1300, TR: 1.2, wf: 0 },
+        truck: { n: 'Truck', d: 'Heavy and grippy, lower top speed', c: 2, R: 25, RL: 34, K: 86, C: 11.5, I: 4200, L: 60, LY: 12, HX: 4, HY: -52, BX: 94, DR: 1000, TOP: 1050, BRK: 1300, TR: 1.55, wf: 1 },
+        sedan: { n: 'Sedan', d: 'Fast, but slips on bad ground', c: 3, R: 17, RL: 26, K: 58, C: 8.5, I: 2800, L: 50, LY: 12, HX: 2, HY: -37, BX: 68, DR: 1250, TOP: 1500, BRK: 1500, TR: 1.0, wf: 1 },
+        suv: { n: 'XUV', d: 'Tall, tough and stable', c: 4, R: 22, RL: 34, K: 74, C: 10.5, I: 3300, L: 54, LY: 12, HX: 4, HY: -47, BX: 86, DR: 1150, TOP: 1350, BRK: 1400, TR: 1.4, wf: 1 },
+        bike: { n: 'Bike', d: 'Light and quick, flips easily', c: 5, R: 19, RL: 28, K: 60, C: 9, I: 1100, L: 34, LY: 10, HX: 10, HY: -58, BX: 44, DR: 1150, TOP: 1450, BRK: 1300, TR: 1.2, wf: 0 },
         sport: { n: 'Sport sedan', d: 'Sleek, grippy and balanced', c: 6, R: 18, RL: 26, K: 62, C: 9.5, I: 2900, L: 52, LY: 12, HX: 8, HY: -35, BX: 70, DR: 1250, TOP: 1500, BRK: 1600, TR: 1.2, wf: 1 },
         sbike: { n: 'Superbike', d: 'Fast and sharp, flips easily', c: 10, R: 18, RL: 28, K: 62, C: 9, I: 1150, L: 36, LY: 10, HX: 12, HY: -56, BX: 46, DR: 1350, TOP: 1550, BRK: 1400, TR: 1.2, wf: 0 },
         monster: { n: 'Monster truck', d: 'Huge wheels, rides over anything', c: 15, R: 34, RL: 40, K: 96, C: 13, I: 5200, L: 66, LY: 12, HX: -26, HY: -51, BX: 80, DR: 1250, TOP: 1100, BRK: 1300, TR: 1.7, wf: 1 },
@@ -1503,7 +1503,7 @@
         rocky: { n: 'Rocky hills', k: 1, amp: 1.1, r: 1.7, t: 1.05, fuel: 1.1, gnd: '#26231f', mt: ['#9a9aa3', '#74757e', '#50515a'], GS: [[0, [132, 130, 124]], [400, [146, 144, 138]], [900, [166, 166, 172]], [1500, [222, 226, 232]]], SS: [[0, [96, 88, 80]], [600, [80, 78, 82]], [1200, [102, 106, 114]]] },
         volcano: { n: 'Volcano', k: 2, amp: 1.2, r: 2.1, t: 1.15, fuel: 1.25, gnd: '#17110f', mt: ['#523030', '#391f20', '#26191a'], GS: [[0, [64, 56, 54]], [400, [80, 66, 58]], [900, [102, 72, 58]], [1500, [150, 84, 60]]], SS: [[0, [44, 36, 36]], [600, [56, 40, 36]], [1300, [84, 46, 34]]] }
       };
-      BIO.rocky.km = 0; BIO.volcano.km = 22; BIO.volcano.mtn = 1;
+      BIO.rocky.km = 1; BIO.volcano.km = 22; BIO.volcano.mtn = 1;
       BIO.autumn = { n: 'Autumn forest', k: 6, km: 4, amp: 1, r: .9, t: 1, fuel: 1, gnd: '#2a1d12', mt: ['#b8895a', '#8e6a48', '#5c4a3a'], tint: 'rgba(255,150,40,.10)', GS: [[0, [176, 150, 56]], [400, [196, 120, 42]], [900, [170, 90, 40]], [1500, [140, 80, 50]]], SS: [[0, [104, 70, 40]], [600, [92, 64, 46]], [1300, [80, 62, 52]]] };
       BIO.desert = { n: 'Desert dunes', k: 3, km: 6, amp: 1.15, r: .5, t: .9, fuel: 1, grip: .92, gnd: '#6b4a2a', mt: ['#d9a766', '#c58e52', '#a9733e'], tint: 'rgba(255,170,70,.14)', GS: [[0, [232, 196, 120]], [500, [214, 170, 98]], [1000, [196, 140, 80]], [1500, [170, 110, 70]]], SS: [[0, [200, 150, 86]], [600, [176, 118, 70]], [1300, [140, 90, 62]]] };
       BIO.arctic = { n: 'Arctic', k: 4, km: 10, amp: 1.05, r: .8, t: 1.15, fuel: 1.05, grip: .75, gnd: '#2c3a4e', mt: ['#b9cde2', '#8fa9c6', '#6684a6'], tint: 'rgba(170,215,255,.16)', GS: [[0, [238, 244, 250]], [500, [225, 235, 245]], [1000, [205, 222, 238]], [1500, [190, 210, 230]]], SS: [[0, [150, 170, 190]], [600, [120, 140, 165]], [1300, [96, 112, 140]]] };
@@ -1597,12 +1597,24 @@
          ========================================================================== */
       const car = { x: 0, y: 0, a: 0, vx: 0, vy: 0, w: 0, wa: [0, 0], wc: [[0, 0], [0, 0]], mt: [[0, 0], [0, 0]], g: [0, 0] };
       const cam = { x: 0, y: 0 }, inp = { gas: false, brake: false, boost: false }, ptr = { gas: false, brake: false, boost: false }, keys = new Set();
+      const SAVE_VER = 'clean_start_v2';
+      try {
+        if (localStorage.getItem('ridgeline.ver') !== SAVE_VER) {
+          localStorage.removeItem('ridgeline.coins');
+          localStorage.removeItem('ridgeline.gems');
+          localStorage.removeItem('ridgeline.owned');
+          localStorage.removeItem('ridgeline.upgrades');
+          localStorage.removeItem('ridgeline.total');
+          localStorage.removeItem('ridgeline.best');
+          localStorage.setItem('ridgeline.ver', SAVE_VER);
+        }
+      } catch (e) { }
       let state = 'menu', items = [], nextChunk = 0, fuel = 100, coins = 0, runCoins = 0, dead = 0, flipT = 0, outT = 0, best = 0, time = 0, hx = {};
-      try { coins = +localStorage.getItem('ridgeline.coins') || 120 } catch (e) { coins = 120 }
+      try { coins = +localStorage.getItem('ridgeline.coins') || 0 } catch (e) { coins = 0 }
       const saveCoins = () => { try { localStorage.setItem('ridgeline.coins', coins) } catch (e) { } };
       let nitro = 100, airTime = 0, airRot = 0, passedCP = new Set(), NP = [], CP = [];
       try { best = +localStorage.getItem('ridgeline.best') || 0 } catch (e) { }
-      let gems = 0, owned = ['buggy', 'truck', 'sedan', 'suv', 'bike'], gemStep = 0, runGems = 0; const GM = [250, 600, 1200];
+      let gems = 0, owned = ['buggy'], gemStep = 0, runGems = 0; const GM = [250, 600, 1200];
       try { gems = +localStorage.getItem('ridgeline.gems') || 0; const o = JSON.parse(localStorage.getItem('ridgeline.owned') || 'null'); if (Array.isArray(o)) owned = o } catch (e) { }
       let totalM = 0; try { totalM = +localStorage.getItem('ridgeline.total') || 0 } catch (e) { }
       let leaderboard = []; try { leaderboard = JSON.parse(localStorage.getItem('ridgeline.leaderboard') || '[]') } catch (e) { }
@@ -2217,7 +2229,7 @@
       click('nxt', advance); addEventListener('pointerdown', () => { if (state === 'load' && ready) finishLoad() }, sg); addEventListener('keydown', () => { if (state === 'load' && ready) finishLoad() }, sg); click('back', () => go(step - 1)); click('pv', () => cycleCar(-1)); click('nx', () => cycleCar(1));
       let sx0 = null; cv.addEventListener('pointerdown', e => { sx0 = e.clientX }, sg); cv.addEventListener('pointerup', e => { if (sx0 != null && state === 'menu' && step === 0 && Math.abs(e.clientX - sx0) > 50) cycleCar(e.clientX < sx0 ? 1 : -1); sx0 = null }, sg); click('resume', pause); click('rs1', startRun); click('rs2', startRun); click('mn1', toMenu); click('mn2', toMenu); click('bp', pause);
       click('btn-menu-lb', openLeaderboard); click('btn-over-lb', openLeaderboard); click('btn-lb-close', closeLeaderboard);
-      click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, terrain settings, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.removeItem('ridgeline.terrainParams'); localStorage.setItem('ridgeline.coins', '120') } catch (e) { } best = 0; gems = 0; coins = 120; runCoins = 0; owned = ['buggy', 'truck', 'sedan', 'suv', 'bike']; totalM = 0; leaderboard = []; upgrades = {}; terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 }; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); applyTerrainParams(); updGems(); wizRender(); toast('All progress reset to default', 2) } });
+      click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, terrain settings, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.removeItem('ridgeline.terrainParams'); localStorage.setItem('ridgeline.coins', '0'); localStorage.setItem('ridgeline.ver', SAVE_VER) } catch (e) { } best = 0; gems = 0; coins = 0; runCoins = 0; owned = ['buggy']; totalM = 0; leaderboard = []; upgrades = {}; terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 }; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); applyTerrainParams(); updGems(); wizRender(); toast('All progress reset to clean new game (0 coins, 0 diamonds)', 2) } });
       boot();
     })();
   </script>
