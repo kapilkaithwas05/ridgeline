@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <title>RIDGELINE</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --title: "Avenir Next Condensed", "DIN Condensed", "Bebas Neue", "Arial Narrow", Arial, sans-serif;
@@ -1739,6 +1740,7 @@
       <div id="coin-top" style="color:var(--amber);font-weight:700;font-size:17px;margin:0 14px 0 0"
         title="Your total coins for car tuning">🪙 0</div>
       <div class="tot" id="tot"></div>
+      <div id="cloud-status" style="font-size:12px;color:#7fd8ff;display:flex;align-items:center;gap:4px;margin-right:12px;cursor:pointer" title="Automatic Cloud Progress Active">☁️ <span id="player-tag">Rider</span></div>
       <div style="display:flex;gap:6px;align-items:center;margin-right:12px"><button id="btn-menu-settings" class="chip"
           title="Game Settings" style="font-size:13px;padding:4px 10px;min-height:28px">⚙ Settings</button><button id="btn-menu-fs" class="chip"
           title="Toggle Fullscreen" style="font-size:13px;padding:4px 10px;min-height:28px">⛶ Fullscreen</button><button id="btn-menu-lb" class="chip"
@@ -1797,6 +1799,24 @@
         </div>
         <div class="settings-hint">Lower = smoother & more stable. Higher = more responsive for stunts & quick turns.</div>
       </div>
+      <div class="settings-section">
+        <div class="settings-section-title">☁️ Cloud Progress & Player ID</div>
+        <div class="settings-row">
+          <span>Player Identity:</span>
+          <b id="cfg-player-id" style="color:#7fd8ff;font-family:monospace;font-size:13px">Rider #....</b>
+        </div>
+        <div class="settings-row">
+          <span>Cloud Sync Status:</span>
+          <span id="cfg-cloud-status" style="color:#4cd964;font-size:13px;font-weight:600">Active (Auto-Saved)</span>
+        </div>
+        <div class="settings-row" style="margin-top:4px">
+          <button id="btn-google-sync" class="btn-toggle" style="width:100%;min-width:auto;padding:8px 14px;background:#1a2332;border:1px solid #7fd8ff55;color:#e9edf1;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+            <span id="btn-google-txt">Cross-Device Sync with Google</span>
+          </button>
+        </div>
+        <div class="settings-hint">Progress saves automatically on this device. Sign in with Google to restore your coins & cars on other devices.</div>
+      </div>
     </div>
     <button class="btn" id="btn-settings-close">Done</button>
   </div>
@@ -1814,7 +1834,7 @@
       };
       let upgrades = {};/* {carKey:{speed:0,grip:0,power:0,stab:0}} */
       try { const u = JSON.parse(localStorage.getItem('ridgeline.upgrades') || 'null'); if (u && typeof u === 'object') upgrades = u } catch (e) { }
-      function saveUpgrades() { try { localStorage.setItem('ridgeline.upgrades', JSON.stringify(upgrades)) } catch (e) { } }
+      function saveUpgrades() { try { localStorage.setItem('ridgeline.upgrades', JSON.stringify(upgrades)) } catch (e) { } if (typeof scheduleCloudSave === 'function') scheduleCloudSave(); }
       function getUpgLevel(car, stat) { return (upgrades[car] && upgrades[car][stat]) || 0 }
       function applyUpgrades(car, base) { const u = upgrades[car] || {}; const out = Object.assign({}, base); for (const stat of ['speed', 'grip', 'power', 'stab']) { const t = u[stat] || 0; if (t > 0) { const b = UPG[stat].bonus(t); for (const k in b) if (out[k] !== undefined) out[k] += b[k] } } return out }
       const VEH = {
@@ -2022,20 +2042,200 @@
       } catch (e) { }
       let state = 'menu', items = [], nextChunk = 0, fuel = 100, coins = 0, runCoins = 0, dead = 0, flipT = 0, outT = 0, best = 0, time = 0, hx = {};
       try { coins = +localStorage.getItem('ridgeline.coins') || 0 } catch (e) { coins = 0 }
-      const saveCoins = () => { try { localStorage.setItem('ridgeline.coins', coins) } catch (e) { } };
+      const saveCoins = () => { try { localStorage.setItem('ridgeline.coins', coins) } catch (e) { } if (typeof scheduleCloudSave === 'function') scheduleCloudSave(); };
       let nitro = 100, airTime = 0, airRot = 0, passedCP = new Set(), NP = [], CP = [];
       try { best = +localStorage.getItem('ridgeline.best') || 0 } catch (e) { }
       let gems = 0, owned = ['buggy'], gemStep = 0, runGems = 0; const GM = [250, 600, 1200];
       try { gems = +localStorage.getItem('ridgeline.gems') || 0; const o = JSON.parse(localStorage.getItem('ridgeline.owned') || 'null'); if (Array.isArray(o)) owned = o } catch (e) { }
       let totalM = 0; try { totalM = +localStorage.getItem('ridgeline.total') || 0 } catch (e) { }
       let leaderboard = []; try { leaderboard = JSON.parse(localStorage.getItem('ridgeline.leaderboard') || '[]') } catch (e) { }
-      function recordScore(distVal, carKey, biomeKey) { if (distVal <= 0) return; const item = { dist: distVal, car: VEH[carKey] ? VEH[carKey].n : carKey, biome: BIO[biomeKey] ? BIO[biomeKey].n : biomeKey, date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }; leaderboard.push(item); leaderboard.sort((a, b) => b.dist - a.dist); leaderboard = leaderboard.slice(0, 5); try { localStorage.setItem('ridgeline.leaderboard', JSON.stringify(leaderboard)) } catch (e) { } }
+      function recordScore(distVal, carKey, biomeKey) { if (distVal <= 0) return; const item = { dist: distVal, car: VEH[carKey] ? VEH[carKey].n : carKey, biome: BIO[biomeKey] ? BIO[biomeKey].n : biomeKey, date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }; leaderboard.push(item); leaderboard.sort((a, b) => b.dist - a.dist); leaderboard = leaderboard.slice(0, 5); try { localStorage.setItem('ridgeline.leaderboard', JSON.stringify(leaderboard)) } catch (e) { } if (typeof scheduleCloudSave === 'function') scheduleCloudSave(); }
       function renderLeaderboard() { const list = $('lb-list'); if (!list) return; list.innerHTML = ''; if (!leaderboard.length) { list.innerHTML = '<div style="color:var(--dim);padding:18px;text-align:center;font-size:16px;">No runs recorded yet.<br><small style="font-size:13px;color:#8f9baa;">Drive some distance to set your first high score!</small></div>'; return } const medals = ['🥇', '🥈', '🥉', '4th', '5th']; leaderboard.forEach((e, idx) => { const row = document.createElement('div'); row.className = 'lb-row'; const rankTxt = medals[idx] || ('#' + (idx + 1)); row.innerHTML = `<div class="lb-rank">${rankTxt}</div><div class="lb-main"><span class="lb-dist">${e.dist} m</span> <span class="lb-meta">• ${e.car} (${e.biome})</span></div><div class="lb-date">${e.date}</div>`; list.appendChild(row) }) }
       let prevScreenState = 'menu'; function openLeaderboard() { prevScreenState = (state === 'over' ? 'over' : 'menu'); renderLeaderboard(); setState('lb') } function closeLeaderboard() { setState(prevScreenState === 'over' ? 'over' : 'menu') }
       const bOpen = b => totalM >= (BIO[b].km || 0) * 1000;
       const isOwned = k => !VEH[k].c || owned.includes(k);
-      const saveGems = () => { try { localStorage.setItem('ridgeline.gems', gems); localStorage.setItem('ridgeline.owned', JSON.stringify(owned)) } catch (e) { } };
+      const saveGems = () => { try { localStorage.setItem('ridgeline.gems', gems); localStorage.setItem('ridgeline.owned', JSON.stringify(owned)) } catch (e) { } if (typeof scheduleCloudSave === 'function') scheduleCloudSave(); };
       function updGems() { $('gemc').textContent = '\u25C6 ' + gems + (runGems ? '  (+' + runGems + ' this run)' : ''); $('gem').textContent = '\u25C6 ' + gems; if ($('coin-top')) $('coin-top').textContent = '🪙 ' + coins; $('tot').textContent = (totalM / 1000).toFixed(1) + ' km total' }
+
+      /* ==========================================================================
+         4. CLOUD PERSISTENCE & SECURE PLAYER IDENTITY SYSTEM
+         - Automatic cryptographically secure player identification
+         - Cloud progress synchronization with conflict resolution
+         - Optional non-intrusive Google One Tap cross-device sync
+         ========================================================================== */
+      let playerId = '', playerToken = '', playerUpdatedAt = 0, isGoogleLinked = false;
+      const API_BASE = window.location.origin;
+
+      function initPlayerIdentity() {
+        try {
+          playerId = localStorage.getItem('ridgeline.playerId');
+          playerToken = localStorage.getItem('ridgeline.playerToken');
+          playerUpdatedAt = +localStorage.getItem('ridgeline.playerUpdatedAt') || 0;
+          isGoogleLinked = !!localStorage.getItem('ridgeline.googleToken');
+
+          if (!playerId || !playerId.startsWith('usr_') || !playerToken) {
+            const randBytes = new Uint8Array(16);
+            crypto.getRandomValues(randBytes);
+            playerId = 'usr_' + Array.from(randBytes, b => b.toString(16).padStart(2, '0')).join('');
+
+            const tokenBytes = new Uint8Array(24);
+            crypto.getRandomValues(tokenBytes);
+            playerToken = 'tok_' + Array.from(tokenBytes, b => b.toString(16).padStart(2, '0')).join('');
+            playerUpdatedAt = Date.now();
+
+            localStorage.setItem('ridgeline.playerId', playerId);
+            localStorage.setItem('ridgeline.playerToken', playerToken);
+            localStorage.setItem('ridgeline.playerUpdatedAt', playerUpdatedAt);
+          }
+        } catch (e) {
+          playerId = 'usr_guest';
+          playerToken = 'tok_guest';
+        }
+        updatePlayerUI();
+        syncWithCloud();
+      }
+
+      function getMaskedPlayerTag() {
+        if (!playerId || playerId.length < 8) return 'Rider';
+        return 'Rider #' + playerId.slice(-4).toUpperCase();
+      }
+
+      function updatePlayerUI() {
+        const tag = getMaskedPlayerTag();
+        const pt = $('player-tag'); if (pt) pt.textContent = tag;
+        const cpid = $('cfg-player-id'); if (cpid) cpid.textContent = tag;
+        const gTxt = $('btn-google-txt');
+        if (gTxt && isGoogleLinked) gTxt.textContent = 'Google Account Linked ✔';
+      }
+
+      let saveTimer = null;
+      function scheduleCloudSave() {
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveCloudProgress, 1200);
+      }
+
+      function getProgressPayload() {
+        return {
+          coins: Math.max(0, coins || 0),
+          gems: Math.max(0, gems || 0),
+          best: Math.max(0, best || 0),
+          totalM: Math.max(0, totalM || 0),
+          owned: Array.isArray(owned) ? owned : ['buggy'],
+          upgrades: upgrades || {},
+          cfg: cfg || { car: 'buggy', biome: 'grass' },
+          terrainParams: terrainParams || { scale: 1.0, height: 50, octaves: 4, seed: 42 },
+          sound: { enabled: typeof soundEnabled !== 'undefined' ? soundEnabled : true, volume: typeof soundVolume !== 'undefined' ? soundVolume : 20 },
+          sensitivity: typeof controlSensitivity !== 'undefined' ? controlSensitivity : 50,
+          updatedAt: Date.now()
+        };
+      }
+
+      async function syncWithCloud(googleTokenOverride) {
+        try {
+          const gToken = googleTokenOverride || localStorage.getItem('ridgeline.googleToken') || '';
+          let url = `${API_BASE}/api/progress?id=${encodeURIComponent(playerId)}&token=${encodeURIComponent(playerToken)}`;
+          if (gToken) url += `&googleToken=${encodeURIComponent(gToken)}`;
+
+          const res = await fetch(url).catch(() => null);
+          if (!res || !res.ok) return;
+
+          const data = await res.json().catch(() => null);
+          if (data && data.ok && data.progress) {
+            const cp = data.progress;
+            const cloudTime = data.updatedAt || 0;
+            const localTime = +localStorage.getItem('ridgeline.playerUpdatedAt') || 0;
+
+            if (cloudTime > localTime) {
+              if (typeof cp.coins === 'number') { coins = cp.coins; try { localStorage.setItem('ridgeline.coins', coins); } catch(e){} }
+              if (typeof cp.gems === 'number') { gems = cp.gems; }
+              if (Array.isArray(cp.owned) && cp.owned.length) { owned = cp.owned; }
+              try { localStorage.setItem('ridgeline.gems', gems); localStorage.setItem('ridgeline.owned', JSON.stringify(owned)); } catch(e){}
+              if (typeof cp.best === 'number') { best = cp.best; try { localStorage.setItem('ridgeline.best', best); } catch(e){} }
+              if (typeof cp.totalM === 'number') { totalM = cp.totalM; try { localStorage.setItem('ridgeline.total', totalM); } catch(e){} }
+              if (cp.upgrades && typeof cp.upgrades === 'object') { upgrades = cp.upgrades; try { localStorage.setItem('ridgeline.upgrades', JSON.stringify(upgrades)); } catch(e){} }
+              if (cp.cfg && typeof cp.cfg === 'object') { Object.assign(cfg, cp.cfg); try { localStorage.setItem('ridgeline.cfg', JSON.stringify(cfg)); } catch(e){} applyCfg(); }
+              if (cp.terrainParams && typeof cp.terrainParams === 'object') { Object.assign(terrainParams, cp.terrainParams); try { localStorage.setItem('ridgeline.terrainParams', JSON.stringify(terrainParams)); } catch(e){} }
+              if (cp.sound && typeof cp.sound === 'object') { soundEnabled = cp.sound.enabled !== false; soundVolume = cp.sound.volume || 20; }
+              if (typeof cp.sensitivity === 'number') { controlSensitivity = cp.sensitivity; }
+
+              localStorage.setItem('ridgeline.playerUpdatedAt', cloudTime);
+              updGems();
+              if (typeof wizRender === 'function') wizRender();
+              const cStatus = $('cfg-cloud-status'); if (cStatus) cStatus.textContent = 'Restored from Cloud ✔';
+            } else if (localTime > cloudTime || data.isNew) {
+              saveCloudProgress();
+            }
+          } else if (data && data.isNew) {
+            saveCloudProgress();
+          }
+        } catch (e) {}
+      }
+
+      async function saveCloudProgress() {
+        try {
+          const payload = getProgressPayload();
+          localStorage.setItem('ridgeline.playerUpdatedAt', payload.updatedAt);
+          const gToken = localStorage.getItem('ridgeline.googleToken') || '';
+
+          const body = {
+            id: playerId,
+            token: playerToken,
+            progress: payload,
+            googleToken: gToken || undefined
+          };
+
+          const res = await fetch(`${API_BASE}/api/progress`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            keepalive: true
+          }).catch(() => null);
+
+          if (res && res.ok) {
+            const data = await res.json().catch(() => null);
+            if (data && data.conflict && data.progress) {
+              const cp = data.progress;
+              if (typeof cp.coins === 'number') { coins = cp.coins; saveCoins(); }
+              if (typeof cp.gems === 'number') { gems = cp.gems; }
+              if (Array.isArray(cp.owned)) { owned = cp.owned; }
+              saveGems();
+              updGems();
+              if (typeof wizRender === 'function') wizRender();
+            }
+            const cStatus = $('cfg-cloud-status'); if (cStatus) cStatus.textContent = 'Synced with Cloud ✔';
+          }
+        } catch (e) {}
+      }
+
+      function initGoogleAuth(force) {
+        if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) return;
+        try {
+          const clientId = window.RIDGELINE_GOOGLE_CLIENT_ID || document.querySelector('meta[name="google-signin-client_id"]')?.content || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+          if (clientId.includes('YOUR_GOOGLE_CLIENT_ID')) {
+            if (force) toast('Cross-device Google sync requires a Google OAuth Client ID.', 3.5);
+            return;
+          }
+
+          google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleResponse,
+            auto_select: !force,
+            cancel_on_tap_outside: true
+          });
+          google.accounts.id.prompt();
+        } catch (e) {}
+      }
+
+      function handleGoogleResponse(response) {
+        if (!response || !response.credential) return;
+        try {
+          localStorage.setItem('ridgeline.googleToken', response.credential);
+          isGoogleLinked = true;
+          updatePlayerUI();
+          syncWithCloud(response.credential);
+          toast('☁️ Google account linked! Cloud progress synced.', 2.5);
+        } catch (e) {}
+      }
       const P = Array.from({ length: 70 }, () => ({ l: 0, x: 0, y: 0, vx: 0, vy: 0, m: 0 })); let pi = 0; const WP = Array.from({ length: 150 }, () => ({ x: Math.random(), y: Math.random(), v: Math.random() })), EM = Array.from({ length: 40 }, () => ({ x: Math.random(), y: Math.random(), v: Math.random() })); let flash = 0, flashT = 3;
       function wxUpdate(dt) {
         const w = cfg.wx; if (w === 'rain' || w === 'snow') for (const p of WP) { if (w === 'rain') { p.y += (.9 + p.v * .5) * dt; p.x -= .12 * dt } else { p.y += (.06 + .06 * p.v) * dt; p.x += Math.sin(time * 1.3 + p.v * 9) * .02 * dt } if (p.y > 1) { p.y = -.05; p.x = Math.random() } if (p.x < 0) p.x += 1; if (p.x > 1) p.x -= 1 }
@@ -2311,7 +2511,7 @@
         Object.assign(car, { x: 100, y: gh(100) - RL - R + 4, a: 0, vx: 0, vy: 0, w: 0 }); cam.x = car.x - vw * .3; cam.y = car.y - vh * .58; setState('play'); updHud(true)
       }
       function toMenu() { applyCfg(); setSeed(terrainParams.seed || 42); cam.x = 0; step = 0; prevKey = null; setState('menu'); wizRender() }
-      function endRun(why) { if (state !== 'play') return; const d = dist(), tb = totalM; totalM += d; try { localStorage.setItem('ridgeline.total', totalM) } catch (e) { } const nu = BKEYS.filter(b => tb < BIO[b].km * 1000 && totalM >= BIO[b].km * 1000).map(b => BIO[b].n); $('newun').textContent = nu.length ? 'Terrain unlocked: ' + nu.join(', ') : ''; $('ft').textContent = (totalM / 1000).toFixed(1) + ' km'; if (d > best) { best = d; try { localStorage.setItem('ridgeline.best', d) } catch (e) { } } recordScore(d, cfg.car, cfg.biome); $('why').textContent = why; $('fg').textContent = runGems; $('fd').textContent = d + ' m'; $('fc').textContent = runCoins || 0; $('fb').textContent = best + ' m'; setState('over') }
+      function endRun(why) { if (state !== 'play') return; const d = dist(), tb = totalM; totalM += d; try { localStorage.setItem('ridgeline.total', totalM) } catch (e) { } const nu = BKEYS.filter(b => tb < BIO[b].km * 1000 && totalM >= BIO[b].km * 1000).map(b => BIO[b].n); $('newun').textContent = nu.length ? 'Terrain unlocked: ' + nu.join(', ') : ''; $('ft').textContent = (totalM / 1000).toFixed(1) + ' km'; if (d > best) { best = d; try { localStorage.setItem('ridgeline.best', d) } catch (e) { } } recordScore(d, cfg.car, cfg.biome); $('why').textContent = why; $('fg').textContent = runGems; $('fd').textContent = d + ' m'; $('fc').textContent = runCoins || 0; $('fb').textContent = best + ' m'; setState('over'); scheduleCloudSave(); }
       let toastT = 0; function toast(t, d) { const e = $('toast'); e.textContent = t; e.classList.add('on'); toastT = d }
       const dist = () => Math.max(0, Math.floor((car.x - 100) / 25));
       function pause() {
@@ -2797,7 +2997,7 @@
       function go(n) { if (n < 0 || n > 3 || fadeBusy || (step === 0 && n > 0 && !isOwned(cfg.car)) || (step === 2 && n > 2 && !bOpen(cfg.biome))) return; fadeBusy = 1; $('fade').classList.add('on'); setTimeout(() => { step = n; wizRender(); $('fade').classList.remove('on'); fadeBusy = 0 }, 220) }
       const LT = [['Generating terrain', () => { for (let x = 0; x < 16000; x += 20)gh(x) }], ['Building vehicles', () => { for (const k in VEH) setV(k); setV(cfg.car) }], ['Painting the sky', () => { }], ['Tuning suspension', () => { }], ['Warming up the engine', () => { }]];
       function finishLoad() { if (started) return; started = 1; $('fade').classList.add('on'); setTimeout(() => { Object.assign(cfg, saved); if (!isOwned(cfg.car)) cfg.car = 'buggy'; if (!bOpen(cfg.biome)) cfg.biome = 'grass'; applyCfg(); setSeed(Math.random() * 1e9 | 0); cam.x = 0; step = 0; setState('menu'); wizRender(); $('fade').classList.remove('on') }, 450) }
-      function boot() { saved = Object.assign({}, cfg); Object.assign(cfg, { time: 'evening', wx: 'clear', biome: 'grass' }); applyCfg(); setSeed(Math.random() * 1e9 | 0); cam.x = 0; setState('load'); requestAnimationFrame(frame) }
+      function boot() { saved = Object.assign({}, cfg); Object.assign(cfg, { time: 'evening', wx: 'clear', biome: 'grass' }); applyCfg(); setSeed(Math.random() * 1e9 | 0); cam.x = 0; initPlayerIdentity(); setState('load'); requestAnimationFrame(frame); setTimeout(initGoogleAuth, 1200); }
       function putCar(k, off) { setV(k); car.x = off; car.a = 0; car.y = -(RL + R - 18) - LY; for (let j = 0; j < 2; j++) { const mx = off + (j ? L : -L); car.mt[j][0] = mx; car.mt[j][1] = car.y + LY; car.wc[j][0] = mx; car.wc[j][1] = -R } }
       function showAnim(dt) { time += dt; slideT = Math.min(1, slideT + dt * 2.4); if (slideT >= 1) prevKey = null; car.wa[0] += dt * 1.5; car.wa[1] += dt * 1.5 }
       function garage(fy, u) {
@@ -2893,7 +3093,8 @@
       }, sg);
       addEventListener('keyup', e => { keys.delete(e.code); sync() }, sg);
       addEventListener('blur', () => { rel(); stopAllSounds(); if (state === 'play') pause() }, sg);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) { rel(); stopAllSounds(); if (state === 'play') pause() } }, sg);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) { rel(); stopAllSounds(); saveCloudProgress(); if (state === 'play') pause() } }, sg);
+      window.addEventListener('beforeunload', () => { saveCloudProgress(); }, sg);
       function pad(id, k) {
         const b = $(id); if (!b) return; const off = e => { ptr[k] = false; sync() };
         b.addEventListener('pointerdown', e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId) } catch (x) { } ptr[k] = true; sync() }, sg);
@@ -2907,6 +3108,7 @@
       let sx0 = null; cv.addEventListener('pointerdown', e => { sx0 = e.clientX }, sg); cv.addEventListener('pointerup', e => { if (sx0 != null && state === 'menu' && step === 0 && Math.abs(e.clientX - sx0) > 50) cycleCar(e.clientX < sx0 ? 1 : -1); sx0 = null }, sg); click('resume', pause); click('rs1', startRun); click('rs2', startRun); click('mn1', toMenu); click('mn2', toMenu); click('bp', pause); click('bfs', toggleFullscreen); click('btn-menu-fs', toggleFullscreen);
       click('btn-menu-lb', openLeaderboard); click('btn-over-lb', openLeaderboard); click('btn-lb-close', closeLeaderboard);
       click('btn-menu-settings', openSettings); click('btn-pause-settings', openSettings); click('btn-settings-close', closeSettings);
+      click('cloud-status', openSettings); click('btn-google-sync', () => { initGoogleAuth(true); });
       click('cfg-sound-toggle', () => {
         soundEnabled = !soundEnabled;
         if (!soundEnabled) stopAllSounds();
@@ -2934,7 +3136,7 @@
           saveSensitivitySetting();
         }, sg);
       }
-      click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, terrain settings, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.removeItem('ridgeline.terrainParams'); localStorage.removeItem('ridgeline.sound'); localStorage.removeItem('ridgeline.sensitivity'); localStorage.setItem('ridgeline.coins', '0'); localStorage.setItem('ridgeline.ver', SAVE_VER) } catch (e) { } best = 0; gems = 0; coins = 0; runCoins = 0; owned = ['buggy']; totalM = 0; leaderboard = []; upgrades = {}; soundEnabled = true; soundVolume = 20; controlSensitivity = 50; syncSettingsUI(); terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 }; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); applyTerrainParams(); updGems(); wizRender(); toast('All progress reset to clean new game (0 coins, 0 diamonds)', 2) } });
+      click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, terrain settings, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.removeItem('ridgeline.terrainParams'); localStorage.removeItem('ridgeline.sound'); localStorage.removeItem('ridgeline.sensitivity'); localStorage.removeItem('ridgeline.playerId'); localStorage.removeItem('ridgeline.playerToken'); localStorage.removeItem('ridgeline.playerUpdatedAt'); localStorage.removeItem('ridgeline.googleToken'); localStorage.setItem('ridgeline.coins', '0'); localStorage.setItem('ridgeline.ver', SAVE_VER) } catch (e) { } best = 0; gems = 0; coins = 0; runCoins = 0; owned = ['buggy']; totalM = 0; leaderboard = []; upgrades = {}; soundEnabled = true; soundVolume = 20; controlSensitivity = 50; isGoogleLinked = false; syncSettingsUI(); terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 }; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); applyTerrainParams(); updGems(); wizRender(); initPlayerIdentity(); toast('All progress reset to clean new game (0 coins, 0 diamonds)', 2) } });
       boot();
     })();
   </script>
