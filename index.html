@@ -1138,6 +1138,132 @@
       color: var(--dim);
       white-space: nowrap
     }
+
+    /* --- Terrain Parameters Panel --- */
+    .tp-card {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+      align-items: stretch;
+      max-width: 680px;
+    }
+
+    .tp-info {
+      flex: 1 1 200px;
+      background: linear-gradient(135deg, rgba(160, 130, 245, 0.18), rgba(90, 60, 190, 0.12));
+      border: 1px solid rgba(180, 160, 255, 0.35);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .tp-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.01em;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    .tp-sub {
+      font-size: 13px;
+      color: #c8d3e0;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    .tp-controls {
+      flex: 1 1 260px;
+      background: rgba(14, 21, 30, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: grid;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+    }
+
+    .tp-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tp-lbl {
+      width: 64px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #d6dfe8;
+      flex-shrink: 0;
+    }
+
+    .tp-range {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.16);
+      cursor: pointer;
+    }
+
+    .tp-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--thumb-col, #3b82f6);
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform .1s;
+    }
+
+    .tp-range::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .tp-range::-moz-range-thumb {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--thumb-col, #3b82f6);
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
+
+    .tp-val {
+      min-width: 44px;
+      padding: 3px 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 7px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tp-dice {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 7px;
+      color: #fff;
+      font-size: 13px;
+      padding: 3px 7px;
+      cursor: pointer;
+      line-height: 1.2;
+    }
+
+    .tp-dice:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
   </style>
 </head>
 
@@ -1413,16 +1539,40 @@
          - elev(x): Fractal noise combining 4 octaves to shape natural mountains & hills
          ========================================================================== */
       let perm, T = [], B = [], seed = 1;
+      /* --- Interactive Terrain Parameters --- */
+      let terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 };
+      try {
+        const tp = JSON.parse(localStorage.getItem('ridgeline.terrainParams') || 'null');
+        if (tp && typeof tp === 'object') Object.assign(terrainParams, tp);
+      } catch (e) { }
+      function saveTerrainParams() {
+        try { localStorage.setItem('ridgeline.terrainParams', JSON.stringify(terrainParams)); } catch (e) { }
+      }
+      function applyTerrainParams() {
+        setSeed(terrainParams.seed || 42);
+        T = []; B = [];
+      }
       function rng(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
       function setSeed(s) { seed = s; const r = rng(s), p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { const j = r() * (i + 1) | 0;[p[i], p[j]] = [p[j], p[i]] } perm = new Uint8Array(256); for (let i = 0; i < 256; i++)perm[i] = p[i]; T = []; B = [] }
       const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
       function perlin(x, o) { const i = Math.floor(x), f = x - i, u = fade(f), a = perm[(perm[i & 255] + o * 61) & 255] / 127.5 - 1, b = perm[(perm[(i + 1) & 255] + o * 61) & 255] / 127.5 - 1; return (a * f * (1 - u) + b * (f - 1) * u) * 2 }
       /* noise -> elevation (octaves, difficulty ramp, flat start) */
       function elev(x) {
-        if (x <= 0) return 0; const d = .7 + .9 * Math.min(1, x / 20000), r = Math.min(1, x / 700), q = r * r * (3 - 2 * r);
-        const p = Math.max(0, perlin(x / 2400, 4));
-        const n = 180 * perlin(x / 900, 0) + 75 * perlin(x / 330, 1) + 16 * BM.r * perlin(x / 110, 2) + 3.5 * BM.r * perlin(x / 38, 3) + 260 * p * p;
-        return 1900 * BM.t * (1 - Math.exp(-x / 22000)) + n * d * q * BM.amp
+        if (x <= 0) return 0;
+        const d = .7 + .9 * Math.min(1, x / 20000), r = Math.min(1, x / 700), q = r * r * (3 - 2 * r);
+        const sc = Math.max(0.4, terrainParams.scale || 1.0);
+        const hMult = (terrainParams.height !== undefined ? terrainParams.height : 50) / 50;
+        const oct = Math.max(1, Math.min(6, terrainParams.octaves || 4));
+        const p = Math.max(0, perlin(x / (2400 * sc), 4));
+        let n = 0;
+        if (oct >= 1) n += 180 * perlin(x / (900 * sc), 0);
+        if (oct >= 2) n += 75 * perlin(x / (330 * sc), 1);
+        if (oct >= 3) n += 16 * BM.r * perlin(x / (110 * sc), 2);
+        if (oct >= 4) n += 3.5 * BM.r * perlin(x / (38 * sc), 3);
+        if (oct >= 5) n += 1.2 * BM.r * perlin(x / (15 * sc), 4);
+        if (oct >= 6) n += 0.4 * BM.r * perlin(x / (6 * sc), 5);
+        n += 260 * p * p;
+        return 1900 * BM.t * (1 - Math.exp(-x / 22000)) + n * d * q * BM.amp * hMult
       }
       function ensureB(x) { while (!B.length || B[B.length - 1].xb < x + 3000) { const n = B.length, q = rng(seed + n * 977 + 5), xa = n ? B[n - 1].xb + 2200 + q() * 1400 : 3400, xb = xa + 280 + q() * 140; B.push({ xa, xb, ya: BASE - elev(xa), yb: BASE - elev(xb), c: 0, t: 0, d: new Float32Array(Math.ceil((xb - xa) / 20) + 1), v: new Float32Array(Math.ceil((xb - xa) / 20) + 1) }) } }
       function ensure(i) { while (T.length <= i) { const x = (T.length - 100) * STEP; ensureB(x); let y = BASE - elev(x); for (const b of B) if (x > b.xa && x < b.xb) y += 340 * Math.min(1, Math.sin(Math.PI * (x - b.xa) / (b.xb - b.xa)) * 3); T.push(y) } }
@@ -1434,7 +1584,8 @@
         for (let i = 1; i < N - 1; i++) { d[i] += v[i] * dt; if (d[i] > 80) d[i] = 80; else if (d[i] < -60) d[i] = -60 }
       }
       function gh(x) { for (const b of B) if (x >= b.xa && x <= b.xb && !b.c) return deck(b, x); return gt(x) }
-      const slope = x => (gh(x + 7) - gh(x - 7)) / 14;
+      /* Smoothed surface slope for buttery wheel contact */
+      const slope = x => (gh(x + 14) - gh(x - 14)) / 28;
       /* elevation -> colour */
       let GS, SS;
       function mix(st, e) { let i = 1; while (i < st.length - 1 && e > st[i][0]) i++; const a = st[i - 1], b = st[i], t = Math.max(0, Math.min(1, (e - a[0]) / (b[0] - a[0]))); return [a[1][0] + (b[1][0] - a[1][0]) * t, a[1][1] + (b[1][1] - a[1][1]) * t, a[1][2] + (b[1][2] - a[1][2]) * t] }
@@ -1491,10 +1642,10 @@
       function dust(x, y, vx) { const p = P[pi++ % 70]; p.l = p.m = .5 + Math.random() * .3; p.x = x; p.y = y; p.vx = -vx * .15 + (Math.random() - .5) * 40; p.vy = -30 - Math.random() * 50 }
       function setState(s) { state = s; document.body.dataset.s = s; for (const id of ['menu', 'pause', 'over', 'lb-modal']) $(id).classList.toggle('on', (s === 'pause' && id === 'pause') || (s === 'over' && id === 'over') || (s === 'menu' && id === 'menu') || (s === 'lb' && id === 'lb-modal')) }
       function startRun() {
-        if (!isOwned(cfg.car)) cfg.car = 'buggy'; if (!bOpen(cfg.biome)) cfg.biome = 'grass'; gemStep = 0; runGems = 0; runCoins = 0; updGems(); toastT = 0; $('toast').classList.remove('on'); applyCfg(); setSeed(Math.random() * 1e9 | 0); items = []; nextChunk = 0; fuel = 100; flipT = outT = 0; nitro = 100; airTime = 0; airRot = 0; passedCP.clear(); NP = []; CP = [];
+        if (!isOwned(cfg.car)) cfg.car = 'buggy'; if (!bOpen(cfg.biome)) cfg.biome = 'grass'; gemStep = 0; runGems = 0; runCoins = 0; updGems(); toastT = 0; $('toast').classList.remove('on'); applyCfg(); setSeed(terrainParams.seed || 42); items = []; nextChunk = 0; fuel = 100; flipT = outT = 0; nitro = 100; airTime = 0; airRot = 0; passedCP.clear(); NP = []; CP = [];
         Object.assign(car, { x: 100, y: gh(100) - RL - R + 4, a: 0, vx: 0, vy: 0, w: 0 }); cam.x = car.x - vw * .3; cam.y = car.y - vh * .58; setState('play'); updHud(true)
       }
-      function toMenu() { applyCfg(); setSeed(Math.random() * 1e9 | 0); cam.x = 0; step = 0; prevKey = null; setState('menu'); wizRender() }
+      function toMenu() { applyCfg(); setSeed(terrainParams.seed || 42); cam.x = 0; step = 0; prevKey = null; setState('menu'); wizRender() }
       function endRun(why) { if (state !== 'play') return; const d = dist(), tb = totalM; totalM += d; try { localStorage.setItem('ridgeline.total', totalM) } catch (e) { } const nu = BKEYS.filter(b => tb < BIO[b].km * 1000 && totalM >= BIO[b].km * 1000).map(b => BIO[b].n); $('newun').textContent = nu.length ? 'Terrain unlocked: ' + nu.join(', ') : ''; $('ft').textContent = (totalM / 1000).toFixed(1) + ' km'; if (d > best) { best = d; try { localStorage.setItem('ridgeline.best', d) } catch (e) { } } recordScore(d, cfg.car, cfg.biome); $('why').textContent = why; $('fg').textContent = runGems; $('fd').textContent = d + ' m'; $('fc').textContent = runCoins || 0; $('fb').textContent = best + ' m'; setState('over') }
       let toastT = 0; function toast(t, d) { const e = $('toast'); e.textContent = t; e.classList.add('on'); toastT = d }
       const dist = () => Math.max(0, Math.floor((car.x - 100) / 25));
@@ -1534,20 +1685,22 @@
           if (comp > 0) {
             gnd++; car.g[k] = 1; const m = slope(mx), ln = Math.hypot(m, 1), nx = m / ln, ny = -1 / ln, tx = 1 / ln, ty = m / ln;
             const vmx = car.vx - car.w * ry, vmy = car.vy + car.w * rx, vn = -(vmx * nx + vmy * ny), vt = vmx * tx + vmy * ty;
-            if (comp > RL + 12 && vn > 520) endRun('Crashed on landing'); let N = K * comp + C * vn + (comp > RL ? 600 * (comp - RL) : 0); if (N < 0) N = 0;
+            if (comp > RL + 16 && vn > 580) endRun('Crashed on landing');
+            const bottomOut = comp > RL ? 240 * Math.min(16, comp - RL) : 0;
+            let N = K * comp + C * vn + bottomOut; if (N < 0) N = 0;
             let fd = -vt * .5; if (thr > 0) fd = curDR * Math.max(0, 1 - vt / curTOP); else if (thr < 0) fd = vt > 30 ? -BRK : -600 * Math.max(0, 1 + vt / 450);
             const cap = TR * GRIP * N; fd = Math.max(-cap, Math.min(cap, fd));
             const Fx = N * nx + fd * tx, Fy = N * ny + fd * ty; fx += Fx; fy += Fy; tq += rx * Fy - ry * Fx; car.wa[k] += vt / R * dt
           }
           else car.wa[k] += thr * 18 * dt
         }
-        if (gnd) { const sp = Math.hypot(car.vx, car.vy); if (sp > 800) tq += (Math.random() - .5) * (sp - 800) * 50 }
         for (const sx of [-BX, BX]) {
           const lx = sx, ly = -2, rx = lx * ca - ly * sa, ry = lx * sa + ly * ca, pen = car.y + ry - (gh(car.x + rx) - 5);
-          if (pen > 9 && Math.hypot(car.vx, car.vy) > 350) endRun('Crashed'); if (pen > 0) { const N = 500 * pen + 8 * Math.max(0, car.vy); fy -= N; tq -= rx * N }
+          if (pen > 12 && Math.hypot(car.vx, car.vy) > 420) endRun('Crashed');
+          if (pen > 0) { const N = Math.min(1500, 200 * pen) + 5 * Math.max(0, car.vy); fy -= N; tq -= rx * N * 0.6 }
         }
         car.vx += fx * dt; car.vy += fy * dt; car.w += tq / I * dt;
-        if (!gnd) { car.w -= thr * 5.5 * dt; car.w *= 1 - .5 * dt; airTime += dt; airRot += car.w * dt }
+        if (!gnd) { car.w -= thr * 5.2 * dt; car.w *= 1 - .9 * dt; airTime += dt; airRot += car.w * dt }
         else {
           if (airTime > .35) {
             const flips = Math.round(Math.abs(airRot) / (Math.PI * 1.75));
@@ -1561,7 +1714,7 @@
               nitro = Math.min(100, nitro + 35);
             }
           }
-          airTime = 0; airRot = 0; car.w *= 1 - 1.5 * dt;
+          airTime = 0; airRot = 0; car.w *= 1 - 2.5 * dt;
         }
         car.x += car.vx * dt; car.y += car.vy * dt; car.a += car.w * dt;
         const hx = car.x + HX * ca - HY * sa, hy = car.y + HX * sa + HY * ca;
@@ -1595,7 +1748,13 @@
           if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').classList.remove('on') }
         }
         for (let k = 0; k < 2; k++)if (car.g[k] && Math.abs(car.vx) > 110 && Math.random() < .5) dust(car.wc[k][0], car.wc[k][1] + R - 4, car.vx);
-        const kk = 1 - Math.exp(-5 * dt); cam.x += (car.x - vw * .32 + car.vx * .22 - cam.x) * kk; cam.y += (car.y - vh * .58 - cam.y) * kk; updHud()
+        /* Silky smooth camera tracking with predictive lead */
+        const kk = 1 - Math.exp(-7.5 * dt);
+        const leadX = Math.min(160, Math.max(-50, car.vx * 0.18));
+        const leadY = Math.min(80, Math.max(-80, car.vy * 0.12));
+        cam.x += (car.x - vw * .32 + leadX - cam.x) * kk;
+        cam.y += (car.y - vh * .57 + leadY - cam.y) * kk;
+        updHud()
       }
       /* ---------- HUD ---------- */
       function updHud(f) {
@@ -1830,6 +1989,85 @@
         for (const [v, n] of list) { const b = document.createElement('button'); b.className = 'chip' + (cfg[key] === v ? ' on' : ''); b.textContent = n; b.onclick = () => { if (key === 'car') cycleCar(0, v); else { cfg[key] = v; save(); applyCfg(1); wizRender() } }; rw.appendChild(b) } g.append(l, rw); return g
       }
       function cycleCar(dir, to) { const ks = Object.keys(VEH), i = ks.indexOf(cfg.car); let j = to ? ks.indexOf(to) : (i + dir + ks.length) % ks.length; if (j === i) return; slideDir = to ? (j > i ? 1 : -1) : dir; prevKey = cfg.car; cfg.car = ks[j]; slideT = 0; save(); applyCfg(1); wizRender() }
+      function terrainParamsPanel() {
+        const card = document.createElement('div');
+        card.className = 'tp-card';
+
+        const info = document.createElement('div');
+        info.className = 'tp-info';
+        info.innerHTML = `
+          <div class="tp-title">Select Terrain Parameters</div>
+          <div class="tp-sub">Adjust settings such as scale, height, seed, etc. (if available).</div>
+        `;
+
+        const ctrl = document.createElement('div');
+        ctrl.className = 'tp-controls';
+
+        const params = [
+          { key: 'scale', label: 'Scale', min: 0.5, max: 2.0, step: 0.1, val: terrainParams.scale, fmt: v => (+v).toFixed(1), col: '#3b82f6' },
+          { key: 'height', label: 'Height', min: 10, max: 100, step: 5, val: terrainParams.height, fmt: v => Math.round(v), col: '#a855f7' },
+          { key: 'octaves', label: 'Octaves', min: 1, max: 6, step: 1, val: terrainParams.octaves, fmt: v => Math.round(v), col: '#10b981' },
+          { key: 'seed', label: 'Seed', min: 1, max: 999, step: 1, val: terrainParams.seed, fmt: v => Math.round(v), col: '#ef4444', hasDice: true }
+        ];
+
+        params.forEach(p => {
+          const row = document.createElement('div');
+          row.className = 'tp-row';
+
+          const lbl = document.createElement('span');
+          lbl.className = 'tp-lbl';
+          lbl.textContent = p.label;
+
+          const slider = document.createElement('input');
+          slider.type = 'range';
+          slider.className = 'tp-range';
+          slider.min = p.min;
+          slider.max = p.max;
+          slider.step = p.step;
+          slider.value = p.val;
+          slider.style.setProperty('--thumb-col', p.col);
+
+          const valBox = document.createElement('span');
+          valBox.className = 'tp-val';
+          valBox.textContent = p.fmt(p.val);
+
+          slider.oninput = () => {
+            const v = parseFloat(slider.value);
+            terrainParams[p.key] = v;
+            valBox.textContent = p.fmt(v);
+            saveTerrainParams();
+            applyTerrainParams();
+            if (typeof applyCfg === 'function') applyCfg(1);
+          };
+
+          row.append(lbl, slider, valBox);
+
+          if (p.hasDice) {
+            const dice = document.createElement('button');
+            dice.type = 'button';
+            dice.className = 'tp-dice';
+            dice.title = 'Randomize Seed';
+            dice.textContent = '🎲';
+            dice.onclick = (e) => {
+              e.stopPropagation();
+              const rand = (Math.random() * 998 + 1) | 0;
+              slider.value = rand;
+              terrainParams.seed = rand;
+              valBox.textContent = rand;
+              saveTerrainParams();
+              applyTerrainParams();
+              if (typeof applyCfg === 'function') applyCfg(1);
+              toast('New terrain seed: ' + rand, 1.5);
+            };
+            row.appendChild(dice);
+          }
+
+          ctrl.appendChild(row);
+        });
+
+        card.append(info, ctrl);
+        return card;
+      }
       function wizRender() {
         const dots = $('dots'); dots.textContent = ''; for (let i = 0; i < 4; i++) { const d = document.createElement('i'); if (i === step) d.className = 'on'; dots.appendChild(d) }
         const o = $('opts'); o.textContent = ''; const v = VEH[cfg.car]; $('pv').style.display = $('nx').style.display = step === 0 ? '' : 'none'; let t, sub;
@@ -1856,7 +2094,12 @@
           }
         }
         else if (step === 1) { t = 'Weather and time'; sub = 'Rain and snow reduce grip. The demo shows your pick live.'; o.append(chipRow('time', 'Time of day', Object.keys(TOD).map(k => [k, TOD[k].n])), chipRow('wx', 'Weather', Object.keys(WX).map(k => [k, WX[k].n]))) }
-        else if (step === 2) { t = 'Terrain'; sub = BD[cfg.biome] + (bOpen(cfg.biome) ? '' : '  Locked. Travel ' + BIO[cfg.biome].km + ' km in total to unlock. You have travelled ' + (totalM / 1000).toFixed(1) + ' km.'); o.appendChild(chipRow('biome', 'Terrain', BKEYS.map(k => [k, BIO[k].n + (bOpen(k) ? '' : '  ' + BIO[k].km + ' km')]))) }
+        else if (step === 2) {
+          t = 'Terrain';
+          sub = BD[cfg.biome] + (bOpen(cfg.biome) ? '' : '  Locked. Travel ' + BIO[cfg.biome].km + ' km in total to unlock. You have travelled ' + (totalM / 1000).toFixed(1) + ' km.');
+          o.appendChild(chipRow('biome', 'Terrain', BKEYS.map(k => [k, BIO[k].n + (bOpen(k) ? '' : '  ' + BIO[k].km + ' km')])));
+          o.appendChild(terrainParamsPanel());
+        }
         else { t = 'Ready to drive?'; sub = [v.n, BIO[cfg.biome].n, TOD[cfg.time].n, WX[cfg.wx].n].join(', ') + (best ? '. Best ' + best + ' m' : '') + ' • Controls: Nitro [Shift/W], Stunts [Flips in Air]' }
         $('wt').textContent = t; $('ws').textContent = sub; $('back').style.visibility = step ? 'visible' : 'hidden'; const n = $('nxt'), lk = step === 0 && !isOwned(cfg.car);
         n.textContent = lk ? (gems >= v.c ? 'Unlock  \u25C6 ' + v.c : 'Locked  \u25C6 ' + v.c) : (step === 3 ? 'Start' : 'Next'); const lk2 = step === 2 && !bOpen(cfg.biome); if (lk2) n.textContent = 'Locked  ' + BIO[cfg.biome].km + ' km'; n.disabled = (lk && gems < v.c) || lk2; n.classList.toggle('go', step === 3 && !lk); n.classList.toggle('unl', lk); updGems()
@@ -1939,14 +2182,14 @@
       /* ---------- loop ---------- */
       let last = 0, acc = 0;
       function frame(t) {
-        const dt = Math.min(.05, (t - last) / 1000 || 0); last = t;
+        const dt = Math.min(.04, (t - last) / 1000 || 0); last = t;
         { const zt = state === 'load' ? 2 : state === 'menu' ? (step === 0 ? 1.7 : 1.25) : 1; S += (S0 * zt - S) * Math.min(1, 5 * dt); vw = W / S; vh = H / S }
         if (state === 'load' && !ready) {
           loadT += dt; const n = LT.length, p = Math.min(1, loadT / 3.6); while (lti < Math.floor(p * n)) { LT[lti][1](); lti++ }
           const pc = Math.round(p * 100) + '%'; $('load').style.setProperty('--p', pc); $('ltxt').textContent = LT[Math.min(n - 1, lti)][0] + ' ' + pc;
           if (p >= 1) { while (lti < n) { LT[lti][1](); lti++ } ready = 1; $('ltxt').textContent = 'Click anywhere to start'; $('ltxt').classList.add('ready') }
         }
-        if (state === 'play') { acc += dt; while (acc >= 1 / 120 && state === 'play') { phys(1 / 120); acc -= 1 / 120 } update(dt) }
+        if (state === 'play') { acc = Math.min(0.06, acc + dt); while (acc >= 1 / 120 && state === 'play') { phys(1 / 120); acc -= 1 / 120 } update(dt) }
         else if (state === 'menu' && step === 0) showAnim(dt);
         else if (state === 'menu' || state === 'load' || state === 'lb') { const ld = state === 'load'; time += dt; cam.x += (ld ? 240 : 140) * dt; cam.y += (gh(cam.x + vw * .3) - vh * (ld ? .5 : .4) - cam.y) * Math.min(1, 2 * dt); menuCar(dt, ld ? .55 : .62) }
         if (state !== 'pause' && state !== 'lb') { wxUpdate(dt); for (const f of FL) { f.x -= f.v * dt; f.p += dt * 9; if (f.x < -.2) f.x = 1.2 + Math.random() * .3 } } if (state !== 'pause' && state !== 'lb') for (const p of P) if (p.l > 0) { p.l -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .97 }
@@ -1974,7 +2217,7 @@
       click('nxt', advance); addEventListener('pointerdown', () => { if (state === 'load' && ready) finishLoad() }, sg); addEventListener('keydown', () => { if (state === 'load' && ready) finishLoad() }, sg); click('back', () => go(step - 1)); click('pv', () => cycleCar(-1)); click('nx', () => cycleCar(1));
       let sx0 = null; cv.addEventListener('pointerdown', e => { sx0 = e.clientX }, sg); cv.addEventListener('pointerup', e => { if (sx0 != null && state === 'menu' && step === 0 && Math.abs(e.clientX - sx0) > 50) cycleCar(e.clientX < sx0 ? 1 : -1); sx0 = null }, sg); click('resume', pause); click('rs1', startRun); click('rs2', startRun); click('mn1', toMenu); click('mn2', toMenu); click('bp', pause);
       click('btn-menu-lb', openLeaderboard); click('btn-over-lb', openLeaderboard); click('btn-lb-close', closeLeaderboard);
-      click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.setItem('ridgeline.coins', '120') } catch (e) { } best = 0; gems = 0; coins = 120; runCoins = 0; owned = ['buggy', 'truck', 'sedan', 'suv', 'bike']; totalM = 0; leaderboard = []; upgrades = {}; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); updGems(); wizRender(); toast('All progress reset to default', 2) } });
+      click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, terrain settings, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.removeItem('ridgeline.terrainParams'); localStorage.setItem('ridgeline.coins', '120') } catch (e) { } best = 0; gems = 0; coins = 120; runCoins = 0; owned = ['buggy', 'truck', 'sedan', 'suv', 'bike']; totalM = 0; leaderboard = []; upgrades = {}; terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 }; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); applyTerrainParams(); updGems(); wizRender(); toast('All progress reset to default', 2) } });
       boot();
     })();
   </script>
