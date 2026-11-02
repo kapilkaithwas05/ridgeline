@@ -1274,6 +1274,92 @@
       background: rgba(255, 255, 255, 0.22);
     }
 
+    /* --- Settings Modal Styles --- */
+    .settings-card {
+      width: min(92vw, 440px);
+      background: var(--panel);
+      border: 1px solid #fff2;
+      border-radius: 14px;
+      padding: 18px 22px;
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: left;
+    }
+
+    .settings-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .settings-section:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .settings-section-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      font-size: 15px;
+    }
+
+    .settings-row label {
+      color: var(--ink);
+      font-size: 14.5px;
+    }
+
+    .settings-row label b {
+      color: #7fd8ff;
+      margin-left: 4px;
+    }
+
+    .settings-hint {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 1.4;
+      margin-top: -2px;
+    }
+
+    .btn-toggle {
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 6px;
+      border: 1px solid #fff3;
+      background: #2a3644;
+      color: #fff;
+      cursor: pointer;
+      min-width: 60px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-toggle.on {
+      background: #1e90c8;
+      border-color: #5ac8fa;
+    }
+
+    .btn-toggle.off {
+      background: #242a33;
+      color: #8f9baa;
+      border-color: #fff2;
+    }
+
     /* ==========================================================================
        RESPONSIVE & MOBILE LANDSCAPE EXPERIENCE
        ========================================================================== */
@@ -1653,7 +1739,8 @@
       <div id="coin-top" style="color:var(--amber);font-weight:700;font-size:17px;margin:0 14px 0 0"
         title="Your total coins for car tuning">🪙 0</div>
       <div class="tot" id="tot"></div>
-      <div style="display:flex;gap:6px;align-items:center;margin-right:12px"><button id="btn-menu-fs" class="chip"
+      <div style="display:flex;gap:6px;align-items:center;margin-right:12px"><button id="btn-menu-settings" class="chip"
+          title="Game Settings" style="font-size:13px;padding:4px 10px;min-height:28px">⚙ Settings</button><button id="btn-menu-fs" class="chip"
           title="Toggle Fullscreen" style="font-size:13px;padding:4px 10px;min-height:28px">⛶ Fullscreen</button><button id="btn-menu-lb" class="chip"
           title="View Top 5 Runs" style="font-size:13px;padding:4px 12px;min-height:28px">🏆 Scores</button><button
           id="btn-reset" class="chip" title="Reset all progress"
@@ -1672,6 +1759,7 @@
   </div>
   <div id="pause" class="screen">
     <h2>Paused</h2><button class="btn" id="resume">Resume</button><button class="btn alt"
+      id="btn-pause-settings">⚙ Settings</button><button class="btn alt"
       id="rs1">Restart</button><button class="btn alt" id="mn1">Main menu</button>
   </div>
   <div id="over" class="screen">
@@ -1686,6 +1774,31 @@
     <div id="lb-list"
       style="width:min(90vw,460px);background:var(--panel);border:1px solid #fff2;border-radius:14px;padding:16px 20px;backdrop-filter:blur(8px);display:grid;gap:8px">
     </div><button class="btn" id="btn-lb-close">Close</button>
+  </div>
+  <div id="settings-modal" class="screen">
+    <h2>⚙ Settings</h2>
+    <div class="settings-card">
+      <div class="settings-section">
+        <div class="settings-section-title">🔊 Sound Effects</div>
+        <div class="settings-row">
+          <label for="cfg-sound-toggle">Sound Effects</label>
+          <button id="cfg-sound-toggle" class="btn-toggle on" type="button">ON</button>
+        </div>
+        <div class="settings-row">
+          <label for="cfg-volume-slider">Volume: <b id="val-volume">20%</b></label>
+          <input type="range" id="cfg-volume-slider" min="0" max="100" value="20" class="tp-slider" style="flex:1;max-width:180px;">
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">🎮 Mobile Touch Controls</div>
+        <div class="settings-row">
+          <label for="cfg-sens-slider">Sensitivity: <b id="val-sens">50</b></label>
+          <input type="range" id="cfg-sens-slider" min="0" max="100" value="50" class="tp-slider" style="flex:1;max-width:180px;">
+        </div>
+        <div class="settings-hint">Lower = smoother & more stable. Higher = more responsive for stunts & quick turns.</div>
+      </div>
+    </div>
+    <button class="btn" id="btn-settings-close">Done</button>
   </div>
   <script>
     (() => {
@@ -1950,7 +2063,245 @@
       }
       const FL = [0, 1, 2].map(i => ({ x: .25 + i * .4, y: .09 + i * .1, v: .012 + i * .004, p: i * 2, n: 4 + i }));
       function dust(x, y, vx) { const p = P[pi++ % 70]; p.l = p.m = .5 + Math.random() * .3; p.x = x; p.y = y; p.vx = -vx * .15 + (Math.random() - .5) * 40; p.vy = -30 - Math.random() * 50 }
-      function setState(s) { state = s; document.body.dataset.s = s; for (const id of ['menu', 'pause', 'over', 'lb-modal']) $(id).classList.toggle('on', (s === 'pause' && id === 'pause') || (s === 'over' && id === 'over') || (s === 'menu' && id === 'menu') || (s === 'lb' && id === 'lb-modal')) }
+      /* ==========================================================================
+         SOUND & MOBILE SENSITIVITY SYSTEM (Web Audio API - Zero External Files)
+         ========================================================================== */
+      let soundEnabled = true;
+      let soundVolume = 20; // 0 to 100, default low ~20%
+      let controlSensitivity = 50; // 0 to 100, default 50
+      let touchGasSmoothed = 0, touchBrakeSmoothed = 0;
+      try {
+        const s = localStorage.getItem('ridgeline.sound');
+        if (s !== null) {
+          const sp = JSON.parse(s);
+          if (sp && typeof sp === 'object') {
+            if (typeof sp.enabled === 'boolean') soundEnabled = sp.enabled;
+            if (typeof sp.volume === 'number') soundVolume = Math.max(0, Math.min(100, sp.volume));
+          }
+        }
+        const sens = localStorage.getItem('ridgeline.sensitivity');
+        if (sens !== null && !isNaN(+sens)) controlSensitivity = Math.max(0, Math.min(100, +sens));
+      } catch (e) {}
+
+      function saveSoundSettings() {
+        try {
+          localStorage.setItem('ridgeline.sound', JSON.stringify({ enabled: soundEnabled, volume: soundVolume }));
+        } catch (e) {}
+      }
+      function saveSensitivitySetting() {
+        try {
+          localStorage.setItem('ridgeline.sensitivity', controlSensitivity);
+        } catch (e) {}
+      }
+
+      let audioCtx = null;
+      function getAudio() {
+        if (!soundEnabled || soundVolume <= 0) return null;
+        if (!audioCtx) {
+          const AudioCtor = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtor) audioCtx = new AudioCtor();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+        return audioCtx;
+      }
+      function unlockAudio() {
+        if (!audioCtx) {
+          const AudioCtor = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtor) audioCtx = new AudioCtor();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+      }
+      addEventListener('pointerdown', unlockAudio, { passive: true });
+      addEventListener('keydown', unlockAudio, { passive: true });
+
+      // Coin collection: soft pleasant ting-ting with overlap prevention & ascending chime
+      let lastCoinT = 0, coinPitchIndex = 0;
+      function playCoinSound() {
+        const ctx = getAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        if (now - lastCoinT < 0.045) return;
+        if (now - lastCoinT > 0.4) coinPitchIndex = 0; else coinPitchIndex = (coinPitchIndex + 1) % 5;
+        lastCoinT = now;
+
+        const baseFreq = 987.77 * Math.pow(1.05946, coinPitchIndex);
+        const vol = (soundVolume / 100) * 0.08;
+
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc1.type = 'sine';
+        osc2.type = 'triangle';
+        osc1.frequency.setValueAtTime(baseFreq, now);
+        osc1.frequency.exponentialRampToValueAtTime(baseFreq * 1.33, now + 0.08);
+        osc2.frequency.setValueAtTime(baseFreq * 1.5, now);
+
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.13);
+        osc2.stop(now + 0.13);
+      }
+
+      // Diamond collection: distinct, short "tu-tu" double chime
+      function playDiamondSound() {
+        const ctx = getAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const vol = (soundVolume / 100) * 0.10;
+
+        [0, 0.07].forEach((delay, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const freq = idx === 0 ? 659.25 : 987.77;
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + delay);
+
+          gain.gain.setValueAtTime(vol, now + delay);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.11);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now + delay);
+          osc.stop(now + delay + 0.12);
+        });
+      }
+
+      // Nitro activation: slightly stronger short boost sound, non-disturbing
+      let lastNitroSoundT = 0;
+      function playNitroSound() {
+        const ctx = getAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        if (now - lastNitroSoundT < 0.35) return;
+        lastNitroSoundT = now;
+
+        const vol = (soundVolume / 100) * 0.07;
+        const osc = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(380, now + 0.25);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(500, now);
+        filter.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.33);
+      }
+
+      // Normal acceleration: subtle low-volume engine sound
+      let engineOsc = null, engineGain = null, engineFilter = null;
+      function updateEngineSound(isDriving, speedRatio) {
+        if (!soundEnabled || soundVolume <= 0 || state !== 'play' || !isDriving) {
+          if (engineGain && audioCtx) {
+            try {
+              engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.06);
+            } catch (e) {}
+          }
+          return;
+        }
+        const ctx = getAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        if (!engineOsc) {
+          try {
+            engineOsc = ctx.createOscillator();
+            engineFilter = ctx.createBiquadFilter();
+            engineGain = ctx.createGain();
+
+            engineOsc.type = 'triangle';
+            engineOsc.frequency.setValueAtTime(65, now);
+
+            engineFilter.type = 'lowpass';
+            engineFilter.frequency.setValueAtTime(220, now);
+
+            engineGain.gain.setValueAtTime(0, now);
+
+            engineOsc.connect(engineFilter);
+            engineFilter.connect(engineGain);
+            engineGain.connect(ctx.destination);
+            engineOsc.start(now);
+          } catch (e) {
+            return;
+          }
+        }
+
+        const targetVol = (soundVolume / 100) * 0.035;
+        const targetFreq = 55 + Math.min(1, speedRatio) * 65;
+        try {
+          engineOsc.frequency.setTargetAtTime(targetFreq, now, 0.08);
+          engineGain.gain.setTargetAtTime(targetVol, now, 0.08);
+        } catch (e) {}
+      }
+
+      function stopAllSounds() {
+        if (engineGain && audioCtx) {
+          try {
+            engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+          } catch (e) {}
+        }
+      }
+
+      // Settings Modal logic
+      let prevSettingsState = 'menu';
+      function openSettings() {
+        prevSettingsState = (state === 'pause' ? 'pause' : 'menu');
+        syncSettingsUI();
+        setState('settings');
+      }
+      function closeSettings() {
+        setState(prevSettingsState === 'pause' ? 'pause' : 'menu');
+      }
+      function syncSettingsUI() {
+        const toggleBtn = $('cfg-sound-toggle');
+        if (toggleBtn) {
+          toggleBtn.textContent = soundEnabled ? 'ON' : 'OFF';
+          toggleBtn.className = 'btn-toggle ' + (soundEnabled ? 'on' : 'off');
+        }
+        const volSlider = $('cfg-volume-slider');
+        const volVal = $('val-volume');
+        if (volSlider) volSlider.value = soundVolume;
+        if (volVal) volVal.textContent = soundVolume + '%';
+
+        const sensSlider = $('cfg-sens-slider');
+        const sensVal = $('val-sens');
+        if (sensSlider) sensSlider.value = controlSensitivity;
+        if (sensVal) sensVal.textContent = controlSensitivity;
+      }
+
+      function setState(s) {
+        state = s;
+        document.body.dataset.s = s;
+        if (s !== 'play') stopAllSounds();
+        for (const id of ['menu', 'pause', 'over', 'lb-modal', 'settings-modal']) {
+          const el = $(id);
+          if (el) el.classList.toggle('on', (s === 'pause' && id === 'pause') || (s === 'over' && id === 'over') || (s === 'menu' && id === 'menu') || (s === 'lb' && id === 'lb-modal') || (s === 'settings' && id === 'settings-modal'));
+        }
+      }
       function startRun() {
         if (matchMedia('(pointer: coarse)').matches || Math.min(window.innerWidth, window.innerHeight) < 900) {
           lockLandscape();
@@ -1994,13 +2345,25 @@
         const ca = Math.cos(car.a), sa = Math.sin(car.a);
         const nitroActive = (inp.boost && nitro > 0);
         if (nitroActive) {
+          playNitroSound();
           nitro = Math.max(0, nitro - 35 * dt);
           const rx = -L * ca + 6 * sa, ry = -L * sa - 6 * ca;
           for (let m = 0; m < 2; m++)NP.push({ x: car.x + rx + (Math.random() - .5) * 6, y: car.y + ry + (Math.random() - .5) * 6, vx: -ca * (280 + Math.random() * 180) + (Math.random() - .5) * 50, vy: -sa * (280 + Math.random() * 180) + (Math.random() - .5) * 50, life: .25 + Math.random() * .15, maxLife: .38, size: 5 + Math.random() * 6, hue: Math.random() < .6 ? '#00e5ff' : '#ff8c00' });
         } else if (nitro < 100) {
           nitro = Math.min(100, nitro + 10 * dt);
         }
-        const thr = ((inp.gas || (nitroActive ? 1.5 : 0)) ? 1 : 0) - (inp.brake ? 1 : 0);
+
+        // Mobile sensitivity modulation (0-100, default 50)
+        const sensNorm = controlSensitivity / 100;
+        const isTouchGas = ptr.gas && !keys.has('ArrowRight') && !keys.has('KeyD');
+        const isTouchBrake = ptr.brake && !keys.has('ArrowLeft') && !keys.has('KeyA') && !keys.has('Space');
+        const rampRate = 8 + sensNorm * 32;
+        touchGasSmoothed += ((isTouchGas ? 1 : 0) - touchGasSmoothed) * Math.min(1, rampRate * dt);
+        touchBrakeSmoothed += ((isTouchBrake ? 1 : 0) - touchBrakeSmoothed) * Math.min(1, rampRate * dt);
+        const effGas = (keys.has('ArrowRight') || keys.has('KeyD')) ? 1 : (isTouchGas ? touchGasSmoothed : (inp.gas ? 1 : 0));
+        const effBrake = (keys.has('ArrowLeft') || keys.has('KeyA') || keys.has('Space')) ? 1 : (isTouchBrake ? touchBrakeSmoothed : (inp.brake ? 1 : 0));
+
+        const thr = ((effGas || (nitroActive ? 1.5 : 0)) ? 1 : 0) - (effBrake ? 1 : 0);
         const curDR = DR * (nitroActive ? 1.55 : 1), curTOP = TOP * (nitroActive ? 1.4 : 1);
         let fx = 0, fy = G, tq = 0, gnd = 0;
         for (let k = 0; k < 2; k++) {
@@ -2024,7 +2387,8 @@
           if (pen > 0) { const N = Math.min(1500, 200 * pen) + 5 * Math.max(0, car.vy); fy -= N; tq -= rx * N * 0.6 }
         }
         car.vx += fx * dt; car.vy += fy * dt; car.w += tq / I * dt;
-        if (!gnd) { car.w -= thr * 5.2 * dt; car.w *= 1 - .9 * dt; airTime += dt; airRot += car.w * dt }
+        const airTiltSens = (ptr.gas || ptr.brake) ? (0.65 + sensNorm * 0.7) : 1.0;
+        if (!gnd) { car.w -= thr * 5.2 * airTiltSens * dt; car.w *= 1 - .9 * dt; airTime += dt; airRot += car.w * dt }
         else {
           if (airTime > .35) {
             const flips = Math.round(Math.abs(airRot) / (Math.PI * 1.75));
@@ -2032,7 +2396,7 @@
               const dir = airRot < 0 ? "FRONTFLIP" : "BACKFLIP";
               const tag = (flips > 1 ? flips + "x " : "") + dir;
               toast("⚡ " + tag + "! +" + (flips * 20) + " COINS & BOOST", 1.8);
-              coins += 20 * flips; runCoins += 20 * flips; saveCoins(); nitro = Math.min(100, nitro + 50 * flips);
+              coins += 20 * flips; runCoins += 20 * flips; saveCoins(); playCoinSound(); nitro = Math.min(100, nitro + 50 * flips);
             } else if (airTime > 1.3) {
               toast("🦅 AIR TIME " + airTime.toFixed(1) + "s! +BOOST", 1.5);
               nitro = Math.min(100, nitro + 35);
@@ -2049,17 +2413,18 @@
         if (state !== 'play') return; time += dt;
         fuel -= (2 + (inp.gas ? 3.2 : 0) + Math.hypot(car.vx, car.vy) / 400) * BM.fuel * dt;
         if (fuel <= 0) { fuel = 0; outT += dt; if (outT > 4 || Math.hypot(car.vx, car.vy) < 25 && outT > .8) endRun('Out of fuel') }
-        for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (Math.hypot(it.x - car.x, it.y - car.y) < 46) { if (it.t) fuel = Math.min(100, fuel + 35); else { coins++; runCoins++; saveCoins() } items.splice(i, 1) } }
+        for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (Math.hypot(it.x - car.x, it.y - car.y) < 46) { if (it.t) fuel = Math.min(100, fuel + 35); else { coins++; runCoins++; saveCoins(); playCoinSound(); } items.splice(i, 1) } }
         spawn();
         {
           const curD = dist(); const nextMilestone = Math.floor(curD / 500) * 500;
           if (nextMilestone > 0 && !passedCP.has(nextMilestone) && curD >= nextMilestone) {
-            passedCP.add(nextMilestone); coins += 35; runCoins += 35; saveCoins(); nitro = 100; fuel = Math.min(100, fuel + 30);
+            passedCP.add(nextMilestone); coins += 35; runCoins += 35; saveCoins(); playCoinSound(); nitro = 100; fuel = Math.min(100, fuel + 30);
             toast("🏁 CHECKPOINT " + nextMilestone + "m! +35 COINS & FULL NITRO", 2.5);
             for (let c = 0; c < 35; c++)CP.push({ x: car.x + (Math.random() - .5) * 40, y: car.y - 30 - Math.random() * 60, vx: (Math.random() - .5) * 260, vy: -160 - Math.random() * 200, color: ['#ff3b30', '#ff9500', '#ffcc00', '#4cd964', '#5ac8fa', '#007aff', '#5856d6'][c % 7], life: 1.6 + Math.random() * .8, w: 6 + Math.random() * 4, h: 4 + Math.random() * 3 });
           }
         }
-        { const d = dist(); while (gemStep < 3 && d >= GM[gemStep]) { gemStep++; gems++; runGems++; saveGems(); toast('+1 diamond', 2); updGems() } }
+        { const d = dist(); while (gemStep < 3 && d >= GM[gemStep]) { gemStep++; gems++; runGems++; saveGems(); toast('+1 diamond', 2); updGems(); playDiamondSound(); } }
+        updateEngineSound(inp.gas && state === 'play', Math.hypot(car.vx, car.vy) / 600);
         {
           const sp = Math.hypot(car.vx, car.vy); let near = 0;
           for (const b of B) {
@@ -2524,11 +2889,11 @@
       const rel = () => { keys.clear(); ptr.gas = ptr.brake = ptr.boost = false; sync() };
       addEventListener('keydown', e => {
         if (['ArrowLeft', 'ArrowRight', 'Space', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
-        if (state === 'menu') { if (step === 0 && e.code === 'ArrowRight') cycleCar(1); else if (step === 0 && e.code === 'ArrowLeft') cycleCar(-1); else if (e.code === 'Enter') advance() } else if (e.code === 'Enter' && state === 'over') startRun(); if (!e.repeat) { if (e.code === 'Escape') { if (state === 'lb') closeLeaderboard(); else pause() } else if (e.code === 'R' || e.code === 'KeyR') { if (state === 'play' || state === 'pause' || state === 'over') startRun() } } keys.add(e.code); sync()
+        if (state === 'menu') { if (step === 0 && e.code === 'ArrowRight') cycleCar(1); else if (step === 0 && e.code === 'ArrowLeft') cycleCar(-1); else if (e.code === 'Enter') advance() } else if (e.code === 'Enter' && state === 'over') startRun(); if (!e.repeat) { if (e.code === 'Escape') { if (state === 'lb') closeLeaderboard(); else if (state === 'settings') closeSettings(); else pause() } else if (e.code === 'R' || e.code === 'KeyR') { if (state === 'play' || state === 'pause' || state === 'over') startRun() } } keys.add(e.code); sync()
       }, sg);
       addEventListener('keyup', e => { keys.delete(e.code); sync() }, sg);
-      addEventListener('blur', () => { rel(); if (state === 'play') pause() }, sg);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) { rel(); if (state === 'play') pause() } }, sg);
+      addEventListener('blur', () => { rel(); stopAllSounds(); if (state === 'play') pause() }, sg);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) { rel(); stopAllSounds(); if (state === 'play') pause() } }, sg);
       function pad(id, k) {
         const b = $(id); if (!b) return; const off = e => { ptr[k] = false; sync() };
         b.addEventListener('pointerdown', e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId) } catch (x) { } ptr[k] = true; sync() }, sg);
@@ -2541,7 +2906,35 @@
       click('nxt', advance); addEventListener('pointerdown', () => { if (state === 'load' && ready) finishLoad() }, sg); addEventListener('keydown', () => { if (state === 'load' && ready) finishLoad() }, sg); click('back', () => go(step - 1)); click('pv', () => cycleCar(-1)); click('nx', () => cycleCar(1));
       let sx0 = null; cv.addEventListener('pointerdown', e => { sx0 = e.clientX }, sg); cv.addEventListener('pointerup', e => { if (sx0 != null && state === 'menu' && step === 0 && Math.abs(e.clientX - sx0) > 50) cycleCar(e.clientX < sx0 ? 1 : -1); sx0 = null }, sg); click('resume', pause); click('rs1', startRun); click('rs2', startRun); click('mn1', toMenu); click('mn2', toMenu); click('bp', pause); click('bfs', toggleFullscreen); click('btn-menu-fs', toggleFullscreen);
       click('btn-menu-lb', openLeaderboard); click('btn-over-lb', openLeaderboard); click('btn-lb-close', closeLeaderboard);
-      click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, terrain settings, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.removeItem('ridgeline.terrainParams'); localStorage.setItem('ridgeline.coins', '0'); localStorage.setItem('ridgeline.ver', SAVE_VER) } catch (e) { } best = 0; gems = 0; coins = 0; runCoins = 0; owned = ['buggy']; totalM = 0; leaderboard = []; upgrades = {}; terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 }; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); applyTerrainParams(); updGems(); wizRender(); toast('All progress reset to clean new game (0 coins, 0 diamonds)', 2) } });
+      click('btn-menu-settings', openSettings); click('btn-pause-settings', openSettings); click('btn-settings-close', closeSettings);
+      click('cfg-sound-toggle', () => {
+        soundEnabled = !soundEnabled;
+        if (!soundEnabled) stopAllSounds();
+        else playCoinSound();
+        saveSoundSettings();
+        syncSettingsUI();
+      });
+      const volSlider = $('cfg-volume-slider');
+      if (volSlider) {
+        volSlider.addEventListener('input', e => {
+          soundVolume = Math.max(0, Math.min(100, +e.target.value));
+          if (soundVolume === 0) stopAllSounds();
+          const valEl = $('val-volume'); if (valEl) valEl.textContent = soundVolume + '%';
+          saveSoundSettings();
+        }, sg);
+        volSlider.addEventListener('change', () => {
+          if (soundEnabled && soundVolume > 0) playCoinSound();
+        }, sg);
+      }
+      const sensSlider = $('cfg-sens-slider');
+      if (sensSlider) {
+        sensSlider.addEventListener('input', e => {
+          controlSensitivity = Math.max(0, Math.min(100, +e.target.value));
+          const valEl = $('val-sens'); if (valEl) valEl.textContent = controlSensitivity;
+          saveSensitivitySetting();
+        }, sg);
+      }
+      click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, terrain settings, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.removeItem('ridgeline.terrainParams'); localStorage.removeItem('ridgeline.sound'); localStorage.removeItem('ridgeline.sensitivity'); localStorage.setItem('ridgeline.coins', '0'); localStorage.setItem('ridgeline.ver', SAVE_VER) } catch (e) { } best = 0; gems = 0; coins = 0; runCoins = 0; owned = ['buggy']; totalM = 0; leaderboard = []; upgrades = {}; soundEnabled = true; soundVolume = 20; controlSensitivity = 50; syncSettingsUI(); terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 }; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); applyTerrainParams(); updGems(); wizRender(); toast('All progress reset to clean new game (0 coins, 0 diamonds)', 2) } });
       boot();
     })();
   </script>
