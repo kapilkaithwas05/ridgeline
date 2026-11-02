@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <title>RIDGELINE</title>
   <style>
     :root {
@@ -20,16 +20,25 @@
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
-      touch-action: none
+      -webkit-user-select: none;
+      touch-action: manipulation
     }
 
     html,
     body {
       margin: 0;
+      padding: 0;
+      width: 100%;
       height: 100%;
+      height: 100vh;
+      height: 100dvh;
       background: #141c26;
       color: var(--ink);
-      overflow: hidden
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+      touch-action: none;
+      -webkit-touch-callout: none
     }
 
     canvas {
@@ -1264,11 +1273,218 @@
     .tp-dice:hover {
       background: rgba(255, 255, 255, 0.22);
     }
+
+    /* ==========================================================================
+       RESPONSIVE & MOBILE LANDSCAPE EXPERIENCE
+       ========================================================================== */
+    #rotate-overlay {
+      display: none;
+    }
+
+    @media (orientation: portrait) and (max-width: 900px) {
+      #rotate-overlay {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: radial-gradient(circle at center, #111722 0%, #06090e 100%);
+        color: #fff;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+    }
+
+    .ro-card {
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ro-icon-wrap {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ro-phone {
+      width: 52px;
+      height: 52px;
+      animation: roRotatePhone 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      transform-origin: center center;
+    }
+
+    @keyframes roRotatePhone {
+      0% { transform: rotate(0deg); opacity: 0.9; }
+      35% { transform: rotate(-90deg); opacity: 1; }
+      70% { transform: rotate(-90deg); opacity: 1; }
+      85% { transform: rotate(0deg); opacity: 0.9; }
+      100% { transform: rotate(0deg); opacity: 0.9; }
+    }
+
+    .ro-card h2 {
+      font-size: 19px;
+      letter-spacing: .08em;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin: 0;
+      color: #fff;
+    }
+
+    .ro-card p {
+      font-size: 13.5px;
+      line-height: 1.45;
+      color: #9aa4b2;
+      margin: 0;
+    }
+
+    .btn-fs {
+      font-size: 14px;
+      padding: 6px 12px;
+      background: var(--panel);
+      border: 1px solid #fff3;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      min-height: 44px;
+      pointer-events: auto;
+      touch-action: manipulation;
+    }
+
+    .btn-fs:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Mobile Landscape Optimization (Phone in Landscape) */
+    @media (orientation: landscape) and (max-height: 550px) {
+      .wtop {
+        padding: max(6px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 6px max(14px, env(safe-area-inset-left));
+        gap: 8px;
+      }
+      .wtop .logo {
+        font-size: clamp(20px, 4vw, 28px);
+      }
+      .wbot {
+        padding: 10px max(14px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+        gap: 6px;
+        max-height: 84vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .wtitle {
+        font-size: clamp(20px, 4vw, 28px);
+      }
+      .wsub {
+        font-size: 12px;
+      }
+      .opts {
+        max-height: 46vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-right: 4px;
+      }
+      .wnav {
+        margin-top: 4px;
+      }
+      .wnav .btn {
+        min-width: 130px;
+        min-height: 38px;
+        padding: 8px 18px;
+        font-size: 16px;
+      }
+      .tp-card {
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      .tp-row {
+        font-size: 12px;
+      }
+      .tp-slider {
+        height: 5px;
+      }
+      #hud {
+        padding: max(6px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+      }
+      #dist {
+        font-size: clamp(24px, 4.5vw, 38px);
+      }
+      #bp, #bfs {
+        padding: 5px 12px !important;
+        font-size: 13px !important;
+        min-height: 36px !important;
+      }
+      #pads {
+        padding: 0 max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+        gap: 8px;
+      }
+      .pad {
+        width: clamp(78px, 17vw, 115px);
+        height: clamp(62px, 18vh, 85px);
+        font-size: 16px;
+        border-radius: 14px;
+      }
+      .dials {
+        gap: 6px;
+      }
+      .dial {
+        width: clamp(65px, 11vw, 86px);
+      }
+      .dial.sm {
+        width: clamp(52px, 9vw, 68px);
+      }
+      .num {
+        font-size: clamp(13px, 2.2vw, 18px);
+      }
+      .num small {
+        font-size: 8px;
+      }
+    }
+
+    /* Tablets / Mid-size Viewports */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .opts {
+        max-height: 55vh;
+        overflow-y: auto;
+      }
+      .pad {
+        width: clamp(100px, 16vw, 140px);
+        height: clamp(80px, 12vw, 110px);
+      }
+      .dial {
+        width: clamp(90px, 13vw, 120px);
+      }
+      .dial.sm {
+        width: clamp(70px, 10vw, 95px);
+      }
+    }
   </style>
 </head>
 
 <body data-s="menu">
   <canvas id="c"></canvas>
+  <div id="rotate-overlay" aria-hidden="true">
+    <div class="ro-card">
+      <div class="ro-icon-wrap">
+        <svg class="ro-phone" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="14" y="6" width="20" height="36" rx="3" />
+          <line x1="22" y1="36" x2="26" y2="36" />
+        </svg>
+      </div>
+      <h2>ROTATE YOUR DEVICE</h2>
+      <p>Turn your phone horizontally for the best gaming experience.</p>
+    </div>
+  </div>
   <div id="load">
     <div class="lw">
       <h1 class="lh">RIDGELINE</h1>
@@ -1316,7 +1532,7 @@
       <div id="coins">0 coins</div>
       <div id="gemc">◆ 0</div>
     </div>
-    <div class="r"><button id="bp">Pause</button></div>
+    <div class="r"><button id="bfs" class="btn-fs" title="Toggle Fullscreen" style="margin-right:8px">⛶</button><button id="bp">Pause</button></div>
   </div>
   <div id="toast"></div>
   <div id="pads"><button class="pad" id="pb">Brake</button>
@@ -1437,7 +1653,8 @@
       <div id="coin-top" style="color:var(--amber);font-weight:700;font-size:17px;margin:0 14px 0 0"
         title="Your total coins for car tuning">🪙 0</div>
       <div class="tot" id="tot"></div>
-      <div style="display:flex;gap:6px;align-items:center;margin-right:12px"><button id="btn-menu-lb" class="chip"
+      <div style="display:flex;gap:6px;align-items:center;margin-right:12px"><button id="btn-menu-fs" class="chip"
+          title="Toggle Fullscreen" style="font-size:13px;padding:4px 10px;min-height:28px">⛶ Fullscreen</button><button id="btn-menu-lb" class="chip"
           title="View Top 5 Runs" style="font-size:13px;padding:4px 12px;min-height:28px">🏆 Scores</button><button
           id="btn-reset" class="chip" title="Reset all progress"
           style="font-size:13px;padding:4px 10px;min-height:28px;color:#ff7a5c;border-color:#ff7a5c55">↺ Reset</button>
@@ -1527,9 +1744,90 @@
       function setV(k) { const base = VEH[k]; const v = applyUpgrades(k, base); ({ R, RL, K, C, I, L, LY, HX, HY, BX, DR, TOP, BRK, TR } = v) }
       function applyCfg(pv) { BM = BIO[cfg.biome]; GS = BM.GS; SS = BM.SS; GRIP = WX[cfg.wx].g * (BM.grip || 1); G = BM.g || 1500; setV(cfg.car); if (pv) setSeed(seed) }
       let W, H, S, S0, dpr, vw, vh;
-      function resize() { dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; S0 = Math.min(H / 760, W / 900); S = S0; vw = W / S; vh = H / S }
+      function resize() {
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        W = window.visualViewport ? Math.round(window.visualViewport.width) : innerWidth;
+        H = window.visualViewport ? Math.round(window.visualViewport.height) : innerHeight;
+        cv.width = W * dpr;
+        cv.height = H * dpr;
+        if (H <= 520 && W > H) {
+          S0 = Math.max(0.65, Math.min(H / 540, W / 840));
+        } else {
+          S0 = Math.min(H / 760, W / 900);
+        }
+        S = S0;
+        vw = W / S;
+        vh = H / S;
+      }
       const ac = new AbortController(), sg = { signal: ac.signal };
-      addEventListener('resize', resize, sg); resize();
+      addEventListener('resize', resize, sg);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', resize, sg);
+        window.visualViewport.addEventListener('scroll', resize, sg);
+      }
+      resize();
+
+      /* --- Fullscreen & Orientation Helpers --- */
+      function isFullscreen() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      }
+      async function requestFullscreenSafe(target = document.documentElement) {
+        try {
+          if (!isFullscreen()) {
+            if (target.requestFullscreen) await target.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+            else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
+            else if (target.mozRequestFullScreen) target.mozRequestFullScreen();
+            else if (target.msRequestFullscreen) target.msRequestFullscreen();
+          }
+        } catch (e) {}
+      }
+      async function exitFullscreenSafe() {
+        try {
+          if (isFullscreen()) {
+            if (document.exitFullscreen) await document.exitFullscreen().catch(() => {});
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+          }
+        } catch (e) {}
+      }
+      async function toggleFullscreen() {
+        if (isFullscreen()) await exitFullscreenSafe();
+        else await requestFullscreenSafe();
+        setTimeout(resize, 120);
+      }
+      async function lockLandscape() {
+        try {
+          if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape').catch(() => {});
+          } else if (screen.lockOrientation) {
+            screen.lockOrientation('landscape');
+          } else if (screen.webkitLockOrientation) {
+            screen.webkitLockOrientation('landscape');
+          } else if (screen.mozLockOrientation) {
+            screen.mozLockOrientation('landscape');
+          }
+        } catch (e) {}
+      }
+      function onFsChange() {
+        const fs = isFullscreen();
+        const b = $('bfs'); if (b) b.textContent = fs ? '⤓' : '⛶';
+        const mf = $('btn-menu-fs'); if (mf) mf.textContent = fs ? '⤓ Window' : '⛶ Fullscreen';
+        resize();
+      }
+      document.addEventListener('fullscreenchange', onFsChange, sg);
+      document.addEventListener('webkitfullscreenchange', onFsChange, sg);
+
+      function checkOrientationChange() {
+        resize();
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const isMobile = Math.min(window.innerWidth, window.innerHeight) < 900;
+        if (isPortrait && isMobile && state === 'play') {
+          pause();
+        }
+      }
+      addEventListener('orientationchange', () => { setTimeout(checkOrientationChange, 120); }, sg);
+      addEventListener('resize', checkOrientationChange, sg);
       /* ==========================================================================
          1. SEEDED PERLIN NOISE & TERRAIN GENERATION (Pure JavaScript - No Libraries)
          - rng(a): Mulberry32 32-bit pseudo-random number generator
@@ -1654,6 +1952,10 @@
       function dust(x, y, vx) { const p = P[pi++ % 70]; p.l = p.m = .5 + Math.random() * .3; p.x = x; p.y = y; p.vx = -vx * .15 + (Math.random() - .5) * 40; p.vy = -30 - Math.random() * 50 }
       function setState(s) { state = s; document.body.dataset.s = s; for (const id of ['menu', 'pause', 'over', 'lb-modal']) $(id).classList.toggle('on', (s === 'pause' && id === 'pause') || (s === 'over' && id === 'over') || (s === 'menu' && id === 'menu') || (s === 'lb' && id === 'lb-modal')) }
       function startRun() {
+        if (matchMedia('(pointer: coarse)').matches || Math.min(window.innerWidth, window.innerHeight) < 900) {
+          lockLandscape();
+          requestFullscreenSafe();
+        }
         if (!isOwned(cfg.car)) cfg.car = 'buggy'; if (!bOpen(cfg.biome)) cfg.biome = 'grass'; gemStep = 0; runGems = 0; runCoins = 0; updGems(); toastT = 0; $('toast').classList.remove('on'); applyCfg(); setSeed(terrainParams.seed || 42); items = []; nextChunk = 0; fuel = 100; flipT = outT = 0; nitro = 100; airTime = 0; airRot = 0; passedCP.clear(); NP = []; CP = [];
         Object.assign(car, { x: 100, y: gh(100) - RL - R + 4, a: 0, vx: 0, vy: 0, w: 0 }); cam.x = car.x - vw * .3; cam.y = car.y - vh * .58; setState('play'); updHud(true)
       }
@@ -1661,7 +1963,17 @@
       function endRun(why) { if (state !== 'play') return; const d = dist(), tb = totalM; totalM += d; try { localStorage.setItem('ridgeline.total', totalM) } catch (e) { } const nu = BKEYS.filter(b => tb < BIO[b].km * 1000 && totalM >= BIO[b].km * 1000).map(b => BIO[b].n); $('newun').textContent = nu.length ? 'Terrain unlocked: ' + nu.join(', ') : ''; $('ft').textContent = (totalM / 1000).toFixed(1) + ' km'; if (d > best) { best = d; try { localStorage.setItem('ridgeline.best', d) } catch (e) { } } recordScore(d, cfg.car, cfg.biome); $('why').textContent = why; $('fg').textContent = runGems; $('fd').textContent = d + ' m'; $('fc').textContent = runCoins || 0; $('fb').textContent = best + ' m'; setState('over') }
       let toastT = 0; function toast(t, d) { const e = $('toast'); e.textContent = t; e.classList.add('on'); toastT = d }
       const dist = () => Math.max(0, Math.floor((car.x - 100) / 25));
-      function pause() { if (state === 'play') setState('pause'); else if (state === 'pause') setState('play') }
+      function pause() {
+        if (state === 'play') {
+          setState('pause');
+        } else if (state === 'pause') {
+          if (matchMedia('(pointer: coarse)').matches || Math.min(window.innerWidth, window.innerHeight) < 900) {
+            lockLandscape();
+            requestFullscreenSafe();
+          }
+          setState('play');
+        }
+      }
       /* ---------- collectibles ---------- */
       function gen(c) {
         const r = rng(seed + c * 7919), x0 = c * 500;
@@ -2227,7 +2539,7 @@
       addEventListener('touchstart', () => document.body.classList.add('touch'), { once: true, passive: true, signal: ac.signal });
       const click = (id, f) => $(id).addEventListener('click', f, sg);
       click('nxt', advance); addEventListener('pointerdown', () => { if (state === 'load' && ready) finishLoad() }, sg); addEventListener('keydown', () => { if (state === 'load' && ready) finishLoad() }, sg); click('back', () => go(step - 1)); click('pv', () => cycleCar(-1)); click('nx', () => cycleCar(1));
-      let sx0 = null; cv.addEventListener('pointerdown', e => { sx0 = e.clientX }, sg); cv.addEventListener('pointerup', e => { if (sx0 != null && state === 'menu' && step === 0 && Math.abs(e.clientX - sx0) > 50) cycleCar(e.clientX < sx0 ? 1 : -1); sx0 = null }, sg); click('resume', pause); click('rs1', startRun); click('rs2', startRun); click('mn1', toMenu); click('mn2', toMenu); click('bp', pause);
+      let sx0 = null; cv.addEventListener('pointerdown', e => { sx0 = e.clientX }, sg); cv.addEventListener('pointerup', e => { if (sx0 != null && state === 'menu' && step === 0 && Math.abs(e.clientX - sx0) > 50) cycleCar(e.clientX < sx0 ? 1 : -1); sx0 = null }, sg); click('resume', pause); click('rs1', startRun); click('rs2', startRun); click('mn1', toMenu); click('mn2', toMenu); click('bp', pause); click('bfs', toggleFullscreen); click('btn-menu-fs', toggleFullscreen);
       click('btn-menu-lb', openLeaderboard); click('btn-over-lb', openLeaderboard); click('btn-lb-close', closeLeaderboard);
       click('btn-reset', () => { if (confirm('Reset all progress, upgrades, coins, terrain settings, and high scores?')) { try { localStorage.removeItem('ridgeline.best'); localStorage.removeItem('ridgeline.gems'); localStorage.removeItem('ridgeline.owned'); localStorage.removeItem('ridgeline.total'); localStorage.removeItem('ridgeline.cfg'); localStorage.removeItem('ridgeline.leaderboard'); localStorage.removeItem('ridgeline.upgrades'); localStorage.removeItem('ridgeline.terrainParams'); localStorage.setItem('ridgeline.coins', '0'); localStorage.setItem('ridgeline.ver', SAVE_VER) } catch (e) { } best = 0; gems = 0; coins = 0; runCoins = 0; owned = ['buggy']; totalM = 0; leaderboard = []; upgrades = {}; terrainParams = { scale: 1.0, height: 50, octaves: 4, seed: 42 }; cfg = { car: 'buggy', biome: 'grass', time: 'day', wx: 'clear' }; applyCfg(1); applyTerrainParams(); updGems(); wizRender(); toast('All progress reset to clean new game (0 coins, 0 diamonds)', 2) } });
       boot();
